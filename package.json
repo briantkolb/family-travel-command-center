@@ -1,0 +1,56 @@
+{
+  "name": "travel-command-center-reference",
+  "version": "0.1.0",
+  "description": "A field-tested, privacy-conscious family travel command center starter with fictional sample data.",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/briantkolb/family-travel-command-center.git"
+  },
+  "homepage": "https://github.com/briantkolb/family-travel-command-center#readme",
+  "bugs": {
+    "url": "https://github.com/briantkolb/family-travel-command-center/issues"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "generate": "node scripts/generate-trip-data.mjs && node scripts/generate-packing-data.mjs && node scripts/generate-icons.mjs",
+    "predev": "npm run generate",
+    "data:generate": "npm run generate",
+    "regenerate": "npm run generate",
+    "dev": "node server.mjs --dev",
+    "build": "npm run generate && node scripts/build.mjs",
+    "start": "node server.mjs",
+    "test": "npm run build && node scripts/run-tests.mjs",
+    "test:browser:install": "playwright install chromium",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run lint && npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "next": "16.2.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.51.1",
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.2",
+    "@vitejs/plugin-rsc": "0.5.26",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.2.6",
+    "react-server-dom-webpack": "19.2.6",
+    "tailwindcss": "4.2.1",
+    "sharp": "0.34.5",
+    "typescript": "5.9.3",
+    "vinext": "0.0.50",
+    "vite": "8.0.13"
+  },
+  "type": "module",
+  "displayName": "Family Travel Command Center"
+}

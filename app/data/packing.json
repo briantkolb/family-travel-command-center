@@ -1,0 +1,550 @@
+{
+  "Rowan Vale": [
+    {
+      "id": "reference-packing:rowan-vale:1c80b059242f1cb5",
+      "person": "Rowan Vale",
+      "category": "Documents",
+      "item": "Fictional route overview",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Demonstration itinerary only."
+    },
+    {
+      "id": "reference-packing:rowan-vale:b4ac7f428e91089c",
+      "person": "Rowan Vale",
+      "category": "Planning",
+      "item": "Field notebook and pencils",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Keep the shared timing notes together."
+    },
+    {
+      "id": "reference-packing:rowan-vale:96df75230ab6ebd8",
+      "person": "Rowan Vale",
+      "category": "Weather",
+      "item": "Waterproof shell",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "Coastal conditions can change quickly."
+    },
+    {
+      "id": "reference-packing:rowan-vale:019ecc2feec8547e",
+      "person": "Rowan Vale",
+      "category": "Clothing",
+      "item": "Two quick-dry base layers",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "Use the packing filter to mark each item complete."
+    },
+    {
+      "id": "reference-packing:rowan-vale:f7c11636994bc393",
+      "person": "Rowan Vale",
+      "category": "Clothing",
+      "item": "Warm mid-layer",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "Needed for the fictional observatory evening."
+    },
+    {
+      "id": "reference-packing:rowan-vale:31c6bc796515f074",
+      "person": "Rowan Vale",
+      "category": "Footwear",
+      "item": "Broken-in walking shoes",
+      "packIn": "Wear",
+      "when": "Departure day",
+      "notes": "Suitable for ordinary paved walking routes."
+    },
+    {
+      "id": "reference-packing:rowan-vale:50ee2e728ce871f6",
+      "person": "Rowan Vale",
+      "category": "Field gear",
+      "item": "Compact dry bag",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "Keep paper notes protected."
+    },
+    {
+      "id": "reference-packing:rowan-vale:76e86787384bbc7b",
+      "person": "Rowan Vale",
+      "category": "Electronics",
+      "item": "Phone and charging cable",
+      "packIn": "Day bag",
+      "when": "Night before",
+      "notes": "Store no real credentials in the reference app."
+    },
+    {
+      "id": "reference-packing:rowan-vale:2ca08b908df10f08",
+      "person": "Rowan Vale",
+      "category": "Electronics",
+      "item": "Backup battery",
+      "packIn": "Carry-on",
+      "when": "Night before",
+      "notes": "Charge fully before departure."
+    },
+    {
+      "id": "reference-packing:rowan-vale:ec6ecd4c0eb247cf",
+      "person": "Rowan Vale",
+      "category": "Comfort",
+      "item": "Refillable water bottle",
+      "packIn": "Day bag",
+      "when": "Departure day",
+      "notes": "Empty before airport screening."
+    },
+    {
+      "id": "reference-packing:rowan-vale:f8f93d0b0309e06f",
+      "person": "Rowan Vale",
+      "category": "Comfort",
+      "item": "Motion-comfort supplies",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "Choose ordinary supplies appropriate for the traveler."
+    },
+    {
+      "id": "reference-packing:rowan-vale:6fb30a3033b2704b",
+      "person": "Rowan Vale",
+      "category": "Shared gear",
+      "item": "Demonstration briefing cards",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "Fictional materials only."
+    },
+    {
+      "id": "reference-packing:rowan-vale:d85e6225cd8443c9",
+      "person": "Rowan Vale",
+      "category": "Shared gear",
+      "item": "Small repair tape roll",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "For harmless gear organization."
+    },
+    {
+      "id": "reference-packing:rowan-vale:d9f4f178c5014a38",
+      "person": "Rowan Vale",
+      "category": "Accessibility",
+      "item": "Printed pacing plan",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Includes only general operational preferences."
+    },
+    {
+      "id": "reference-packing:rowan-vale:7b355d5ccb7af3a3",
+      "person": "Rowan Vale",
+      "category": "Return",
+      "item": "Empty organizer pouch",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "Use for fictional trip receipts and notes."
+    }
+  ],
+  "Mina Park": [
+    {
+      "id": "reference-packing:mina-park:6f5d8a5bd9be0d60",
+      "person": "Mina Park",
+      "category": "Documents",
+      "item": "Fictional lodging overview",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Contains only DEMO references."
+    },
+    {
+      "id": "reference-packing:mina-park:4e0e1350d73cb828",
+      "person": "Mina Park",
+      "category": "Planning",
+      "item": "Transfer checklist",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Covers shuttle, rail, ferry, and flight examples."
+    },
+    {
+      "id": "reference-packing:mina-park:fe9c5cb008244e1c",
+      "person": "Mina Park",
+      "category": "Weather",
+      "item": "Packable rain cape",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "Keep accessible during transfers."
+    },
+    {
+      "id": "reference-packing:mina-park:5ae94612c7dc08d9",
+      "person": "Mina Park",
+      "category": "Clothing",
+      "item": "Quick-dry travel trousers",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "Pack one spare pair."
+    },
+    {
+      "id": "reference-packing:mina-park:1927200ea6fb6bf0",
+      "person": "Mina Park",
+      "category": "Clothing",
+      "item": "Warm harbor layer",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "For cool ferry decks."
+    },
+    {
+      "id": "reference-packing:mina-park:ef360b234a40ca16",
+      "person": "Mina Park",
+      "category": "Footwear",
+      "item": "Water-resistant walking shoes",
+      "packIn": "Wear",
+      "when": "Departure day",
+      "notes": "Favor stable everyday footwear."
+    },
+    {
+      "id": "reference-packing:mina-park:7104f27861c52b73",
+      "person": "Mina Park",
+      "category": "Field gear",
+      "item": "Luggage scale",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "Demonstration weight checks only."
+    },
+    {
+      "id": "reference-packing:mina-park:6bed16f6b0202c69",
+      "person": "Mina Park",
+      "category": "Electronics",
+      "item": "Phone and charging cable",
+      "packIn": "Day bag",
+      "when": "Night before",
+      "notes": "Charge before the fictional departure."
+    },
+    {
+      "id": "reference-packing:mina-park:f4428c3bba60fef8",
+      "person": "Mina Park",
+      "category": "Electronics",
+      "item": "Multi-port charger",
+      "packIn": "Carry-on",
+      "when": "Night before",
+      "notes": "Verify real equipment separately."
+    },
+    {
+      "id": "reference-packing:mina-park:1019f0be4c1295cb",
+      "person": "Mina Park",
+      "category": "Comfort",
+      "item": "Refillable water bottle",
+      "packIn": "Day bag",
+      "when": "Departure day",
+      "notes": "Refill after screening."
+    },
+    {
+      "id": "reference-packing:mina-park:fea1c4f5dbc3b910",
+      "person": "Mina Park",
+      "category": "Comfort",
+      "item": "Eye mask and earplugs",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "For ordinary travel comfort."
+    },
+    {
+      "id": "reference-packing:mina-park:67807d7da15a5a6f",
+      "person": "Mina Park",
+      "category": "Accessibility",
+      "item": "High-contrast route cards",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Supports wayfinding in the fictional scenario."
+    },
+    {
+      "id": "reference-packing:mina-park:71095d59dc082e39",
+      "person": "Mina Park",
+      "category": "Shared gear",
+      "item": "Label set for field bags",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "Use fictional traveler names only."
+    },
+    {
+      "id": "reference-packing:mina-park:51680e56e2f4f162",
+      "person": "Mina Park",
+      "category": "Shared gear",
+      "item": "Foldable tote",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "For the fictional public market visit."
+    },
+    {
+      "id": "reference-packing:mina-park:c227c43809f7620f",
+      "person": "Mina Park",
+      "category": "Return",
+      "item": "Home-routine reminder card",
+      "packIn": "Main bag",
+      "when": "Day before",
+      "notes": "Contains no access or security information."
+    }
+  ],
+  "Theo Brooks": [
+    {
+      "id": "reference-packing:theo-brooks:a329fa7cba7851b5",
+      "person": "Theo Brooks",
+      "category": "Photography",
+      "item": "Camera body",
+      "packIn": "Carry-on",
+      "when": "Night before",
+      "notes": "Keep with the traveler."
+    },
+    {
+      "id": "reference-packing:theo-brooks:949e497c33928920",
+      "person": "Theo Brooks",
+      "category": "Photography",
+      "item": "Weather-sealed lens",
+      "packIn": "Carry-on",
+      "when": "Night before",
+      "notes": "Use the lens appropriate for the fictional field session."
+    },
+    {
+      "id": "reference-packing:theo-brooks:4df7646aadf1ae98",
+      "person": "Theo Brooks",
+      "category": "Photography",
+      "item": "Spare memory cards",
+      "packIn": "Carry-on",
+      "when": "Night before",
+      "notes": "Start with empty demonstration cards."
+    },
+    {
+      "id": "reference-packing:theo-brooks:5541614e78999dc0",
+      "person": "Theo Brooks",
+      "category": "Photography",
+      "item": "Camera rain cover",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Required for the coastal-weather example."
+    },
+    {
+      "id": "reference-packing:theo-brooks:ee7cbe1d09552666",
+      "person": "Theo Brooks",
+      "category": "Electronics",
+      "item": "Camera charger",
+      "packIn": "Carry-on",
+      "when": "Night before",
+      "notes": "Verify cable is packed."
+    },
+    {
+      "id": "reference-packing:theo-brooks:70ef381e699bf066",
+      "person": "Theo Brooks",
+      "category": "Electronics",
+      "item": "Backup battery",
+      "packIn": "Carry-on",
+      "when": "Night before",
+      "notes": "Charge fully."
+    },
+    {
+      "id": "reference-packing:theo-brooks:1cab060bcf21985c",
+      "person": "Theo Brooks",
+      "category": "Weather",
+      "item": "Waterproof shell",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "Keep accessible."
+    },
+    {
+      "id": "reference-packing:theo-brooks:59ed673fe22ecaac",
+      "person": "Theo Brooks",
+      "category": "Clothing",
+      "item": "Warm observatory layer",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "For the fictional night-sky visit."
+    },
+    {
+      "id": "reference-packing:theo-brooks:4949bac7420ff7dc",
+      "person": "Theo Brooks",
+      "category": "Footwear",
+      "item": "Closed-toe field shoes",
+      "packIn": "Wear",
+      "when": "Departure day",
+      "notes": "Suitable for ordinary shoreline paths."
+    },
+    {
+      "id": "reference-packing:theo-brooks:e375da7e0ce02f82",
+      "person": "Theo Brooks",
+      "category": "Field gear",
+      "item": "Microfiber cloths",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Keep equipment dry and clean."
+    },
+    {
+      "id": "reference-packing:theo-brooks:fe133993e0bb2beb",
+      "person": "Theo Brooks",
+      "category": "Field gear",
+      "item": "Compact tripod",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "Use only where permitted on real trips."
+    },
+    {
+      "id": "reference-packing:theo-brooks:81ac68647cb7ebbd",
+      "person": "Theo Brooks",
+      "category": "Comfort",
+      "item": "Refillable water bottle",
+      "packIn": "Day bag",
+      "when": "Departure day",
+      "notes": "Refill after screening."
+    },
+    {
+      "id": "reference-packing:theo-brooks:ad2b4af624da568b",
+      "person": "Theo Brooks",
+      "category": "Comfort",
+      "item": "Motion-comfort supplies",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "General preparation only."
+    },
+    {
+      "id": "reference-packing:theo-brooks:5804512d8f8580f7",
+      "person": "Theo Brooks",
+      "category": "Planning",
+      "item": "Fictional shot-list notebook",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Contains no private subjects or addresses."
+    },
+    {
+      "id": "reference-packing:theo-brooks:5c5672e01571b8f5",
+      "person": "Theo Brooks",
+      "category": "Return",
+      "item": "Protective media pouch",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "Holds fictional demonstration media only."
+    }
+  ],
+  "Jules Hart": [
+    {
+      "id": "reference-packing:jules-hart:01089d740afcd771",
+      "person": "Jules Hart",
+      "category": "Accessibility",
+      "item": "Step-free route notes",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "General operational preferences only."
+    },
+    {
+      "id": "reference-packing:jules-hart:6d4cb18b236de624",
+      "person": "Jules Hart",
+      "category": "Accessibility",
+      "item": "Flexible pacing card",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Includes planned seated breaks."
+    },
+    {
+      "id": "reference-packing:jules-hart:ec336eefca46fe51",
+      "person": "Jules Hart",
+      "category": "Safety",
+      "item": "Public-advisory checklist",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Verify real guidance with authoritative sources."
+    },
+    {
+      "id": "reference-packing:jules-hart:a19faee7ab8832af",
+      "person": "Jules Hart",
+      "category": "Safety",
+      "item": "Compact flashlight",
+      "packIn": "Carry-on",
+      "when": "Night before",
+      "notes": "For ordinary wayfinding."
+    },
+    {
+      "id": "reference-packing:jules-hart:29243485fb94a72a",
+      "person": "Jules Hart",
+      "category": "Weather",
+      "item": "Waterproof shell",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "Keep accessible."
+    },
+    {
+      "id": "reference-packing:jules-hart:deffea8cca07cce5",
+      "person": "Jules Hart",
+      "category": "Clothing",
+      "item": "Warm ferry-deck layer",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "For cool coastal conditions."
+    },
+    {
+      "id": "reference-packing:jules-hart:3d80f007310b5596",
+      "person": "Jules Hart",
+      "category": "Clothing",
+      "item": "Quick-dry base layers",
+      "packIn": "Main bag",
+      "when": "Two days before",
+      "notes": "Pack two."
+    },
+    {
+      "id": "reference-packing:jules-hart:cf625e5a4af0550e",
+      "person": "Jules Hart",
+      "category": "Footwear",
+      "item": "Supportive walking shoes",
+      "packIn": "Wear",
+      "when": "Departure day",
+      "notes": "Choose familiar, broken-in footwear."
+    },
+    {
+      "id": "reference-packing:jules-hart:998a6350bb5abf9b",
+      "person": "Jules Hart",
+      "category": "Field gear",
+      "item": "Small dry bag",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Protect route notes."
+    },
+    {
+      "id": "reference-packing:jules-hart:cdae83e810c27936",
+      "person": "Jules Hart",
+      "category": "Electronics",
+      "item": "Phone and charging cable",
+      "packIn": "Day bag",
+      "when": "Night before",
+      "notes": "Store no real secrets in the reference app."
+    },
+    {
+      "id": "reference-packing:jules-hart:bb7822774b3ac7f2",
+      "person": "Jules Hart",
+      "category": "Electronics",
+      "item": "Backup battery",
+      "packIn": "Carry-on",
+      "when": "Night before",
+      "notes": "Charge fully."
+    },
+    {
+      "id": "reference-packing:jules-hart:474ac186d8115594",
+      "person": "Jules Hart",
+      "category": "Comfort",
+      "item": "Refillable water bottle",
+      "packIn": "Day bag",
+      "when": "Departure day",
+      "notes": "Refill after screening."
+    },
+    {
+      "id": "reference-packing:jules-hart:3a455f888e4cc356",
+      "person": "Jules Hart",
+      "category": "Comfort",
+      "item": "Motion-comfort supplies",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "General preparation only."
+    },
+    {
+      "id": "reference-packing:jules-hart:ec6b4a0b1e6ba76a",
+      "person": "Jules Hart",
+      "category": "Shared gear",
+      "item": "Demonstration safety cards",
+      "packIn": "Carry-on",
+      "when": "Day before",
+      "notes": "Fictional examples, not professional guidance."
+    },
+    {
+      "id": "reference-packing:jules-hart:60ca2abfc53239c8",
+      "person": "Jules Hart",
+      "category": "Return",
+      "item": "Browser-state reset reminder",
+      "packIn": "Day bag",
+      "when": "Day before",
+      "notes": "Clear all fictional demonstration state after use."
+    }
+  ]
+}

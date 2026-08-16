@@ -1,0 +1,855 @@
+{
+  "identity": {
+    "sample_data": true,
+    "application_name": "Family Travel Command Center",
+    "short_name": "Family Travel",
+    "trip_name": "Northstar Isles Coastal Circuit",
+    "trip_dates": {
+      "start": "2027-04-06",
+      "end": "2027-04-13",
+      "label": "April 6–13, 2027"
+    },
+    "hero_title": [
+      "Your whole trip.",
+      "One field-tested reference."
+    ],
+    "hero_description": "A fictional coastal itinerary demonstrating travel coordination, shared checklists, offline access, and clearly inert booking examples.",
+    "footer_note": "Fictional demonstration data • never store real secrets in this reference app"
+  },
+  "travelers": [
+    {
+      "id": "rowan-vale",
+      "display_name": "Rowan Vale",
+      "role": "Trip coordinator"
+    },
+    {
+      "id": "mina-park",
+      "display_name": "Mina Park",
+      "role": "Logistics lead"
+    },
+    {
+      "id": "theo-brooks",
+      "display_name": "Theo Brooks",
+      "role": "Photography lead"
+    },
+    {
+      "id": "jules-hart",
+      "display_name": "Jules Hart",
+      "role": "Accessibility and safety lead"
+    }
+  ],
+  "airports": {
+    "HBR": "Harbor Ridge Regional Airport",
+    "NIS": "Northstar Isles Gateway",
+    "KBY": "Kestrel Bay Airfield"
+  },
+  "onward_steps": {
+    "HBR-NIS": "Meet the reserved demonstration shuttle at the signed arrivals point, then continue to Ember Harbor.",
+    "NIS-KBY": "Walk to the marked ferry-air connection desk and verify the fictional island transfer window.",
+    "KBY-NIS": "Collect field bags and follow the demonstration signs to the coastal rail platform.",
+    "NIS-HBR": "After arrival, collect luggage and close out the fictional trip checklist before leaving the terminal."
+  },
+  "flights": [
+    {
+      "date": "2027-04-06",
+      "confirmation": "DEMO-AIR-0412",
+      "route": {
+        "from": "HBR",
+        "to": "NIS"
+      },
+      "flight_number": "BH412",
+      "operating_airline": "Blue Heron Air (fictional)",
+      "departure_local": "2027-04-06T09:20:00",
+      "arrival_local": "2027-04-06T10:55:00",
+      "departure_terminal": "Harbor Hall",
+      "arrival_terminal": "North Pier Terminal",
+      "departure_gate_snapshot": "D4",
+      "arrival_gate_snapshot": "A2",
+      "duration": "1h 35m",
+      "aircraft": "Regional demonstration aircraft",
+      "fare": "Flexible field-team fare",
+      "seats": {
+        "Rowan Vale": "12A",
+        "Mina Park": "12C",
+        "Theo Brooks": "13A",
+        "Jules Hart": "13C"
+      },
+      "notes": [
+        "All flight details are fictional demonstration data.",
+        "Keep weather layers and field notebooks in carry-ons."
+      ]
+    },
+    {
+      "date": "2027-04-08",
+      "confirmation": "DEMO-AIR-0208",
+      "route": {
+        "from": "NIS",
+        "to": "KBY"
+      },
+      "flight_number": "BH208",
+      "operating_airline": "Blue Heron Air (fictional)",
+      "departure_local": "2027-04-08T13:10:00",
+      "arrival_local": "2027-04-08T13:55:00",
+      "departure_terminal": "North Pier Terminal",
+      "arrival_terminal": "Kestrel Field House",
+      "departure_gate_snapshot": null,
+      "arrival_gate_snapshot": null,
+      "duration": "45m",
+      "aircraft": "Island shuttle aircraft",
+      "fare": "Demonstration island connector",
+      "seats": "Open seating assigned at fictional check-in",
+      "notes": [
+        "Weather may move this fictional transfer to the passenger ferry."
+      ]
+    },
+    {
+      "date": "2027-04-12",
+      "confirmation": "DEMO-AIR-1216",
+      "route": {
+        "from": "KBY",
+        "to": "NIS"
+      },
+      "flight_number": "BH216",
+      "operating_airline": "Blue Heron Air (fictional)",
+      "departure_local": "2027-04-12T10:15:00",
+      "arrival_local": "2027-04-12T11:00:00",
+      "departure_terminal": "Kestrel Field House",
+      "arrival_terminal": "North Pier Terminal",
+      "departure_gate_snapshot": "K1",
+      "arrival_gate_snapshot": "A1",
+      "duration": "45m",
+      "aircraft": "Island shuttle aircraft",
+      "fare": "Demonstration island connector",
+      "seats": {
+        "Rowan Vale": "5A",
+        "Mina Park": "5B",
+        "Theo Brooks": "6A",
+        "Jules Hart": "6B"
+      },
+      "notes": [
+        "Allow extra time for fictional field-equipment screening."
+      ]
+    },
+    {
+      "date": "2027-04-13",
+      "confirmation": "DEMO-AIR-1318",
+      "route": {
+        "from": "NIS",
+        "to": "HBR"
+      },
+      "flight_number": "BH318",
+      "operating_airline": "Blue Heron Air (fictional)",
+      "departure_local": "2027-04-13T15:05:00",
+      "arrival_local": "2027-04-13T16:40:00",
+      "departure_terminal": "North Pier Terminal",
+      "arrival_terminal": "Harbor Hall",
+      "departure_gate_snapshot": "B3",
+      "arrival_gate_snapshot": "D2",
+      "duration": "1h 35m",
+      "aircraft": "Regional demonstration aircraft",
+      "fare": "Flexible field-team fare",
+      "seats": {
+        "Rowan Vale": "14A",
+        "Mina Park": "14C",
+        "Theo Brooks": "15A",
+        "Jules Hart": "15C"
+      },
+      "notes": [
+        "Complete the shared return checklist after this fictional flight."
+      ]
+    }
+  ],
+  "ground_transport": [
+    {
+      "date": "2027-04-06",
+      "route": "Northstar Gateway → Ember Harbor",
+      "status": "fictional_reservation",
+      "primary_plan": "Use the Tideglass Shuttle demonstration booking after the group assembles at arrivals.",
+      "backup_plan": "Use the marked public coach in this fictional scenario."
+    },
+    {
+      "date": "2027-04-07",
+      "route": "Ember Harbor → Gullrock Island",
+      "status": "fictional_reservation",
+      "service": "Cedarline Coastal Rail (fictional)",
+      "departure_local": "2027-04-07T08:40:00",
+      "arrival_local": "2027-04-07T10:05:00",
+      "pnr": "DEMO-RAIL-204",
+      "coach": "C",
+      "seats": {
+        "Rowan Vale": "21A",
+        "Mina Park": "21B",
+        "Theo Brooks": "22A",
+        "Jules Hart": "22B"
+      },
+      "boarding_codes": {
+        "Rowan Vale": "DEMO-BOARD-RV",
+        "Mina Park": "DEMO-BOARD-MP",
+        "Theo Brooks": "DEMO-BOARD-TB",
+        "Jules Hart": "DEMO-BOARD-JH"
+      },
+      "fare": "Field-team flexible",
+      "class": "Coastal cabin",
+      "price_total": "DEMO $148 total"
+    },
+    {
+      "date": "2027-04-10",
+      "route": "Gullrock Island → Kestrel Bay",
+      "status": "weather_dependent",
+      "preferred_plan": "Board Tideglass Ferry 7 after the fictional harbor briefing; retain the afternoon sailing as a weather buffer."
+    },
+    {
+      "date": "2027-04-13",
+      "route": "Cedar Sound → Northstar Gateway",
+      "status": "fictional_reservation",
+      "target_airport_arrival": "1:00 PM",
+      "suggested_departure_window": "11:45 AM–12:00 PM",
+      "still_needed": "Confirm the demonstration shuttle pickup point the day before."
+    }
+  ],
+  "lodging": [
+    {
+      "city": "Ember Harbor",
+      "display_name": "Lantern House Inn (fictional)",
+      "address": "18 Lantern Walk, Ember Harbor, Northstar Isles",
+      "confirmation": "DEMO-LODGE-LANTERN",
+      "guests": "Four fictional adult travelers",
+      "host": "Avery North (fictional)",
+      "host_phone": "+1 202-555-0101",
+      "check_in": "2027-04-06T15:00:00",
+      "check_out": "2027-04-08T10:30:00",
+      "check_in_process": [
+        "Present the DEMO booking label at the fictional reception desk.",
+        "Use only the inert demonstration access values shown below."
+      ],
+      "private_access": {
+        "building_keypad": "DEMO ONLY — NOT A REAL CODE",
+        "indoor_gate": "DEMO ONLY — INERT",
+        "lockbox_code": "DEMO ONLY — NO LOCKBOX"
+      },
+      "wifi": {
+        "network": "DEMO-NETWORK-NOT-REAL",
+        "password": "DEMO ONLY — NOT A PASSWORD"
+      },
+      "checkout_steps": [
+        "Return the demonstration room card to reception.",
+        "Check the shared gear staging list before departure."
+      ],
+      "nearby_luggage_storage_addresses": [
+        "Fictional visitor center, 2 Harbor Square"
+      ],
+      "luggage_plan": "Use the fictional visitor-center lockers only as a workflow example.",
+      "power_note": "Standard demonstration outlets; verify real equipment requirements independently."
+    },
+    {
+      "city": "Kestrel Bay",
+      "display_name": "Mariner’s Rest Lodge (fictional)",
+      "address": "7 Compass Quay, Kestrel Bay, Northstar Isles",
+      "confirmation": "DEMO-LODGE-MARINER",
+      "guests": "Four fictional adult travelers",
+      "host": "Quinn Harbor (fictional)",
+      "host_phone": "+1 202-555-0102",
+      "check_in": "2027-04-10T16:00:00",
+      "check_out": "2027-04-13T11:00:00",
+      "possible_early_check_in": "A 3:00 PM demonstration arrival may be shown, but it is explicitly unconfirmed.",
+      "pending": "Fictional room location to be entered in Pending updates.",
+      "manager_contact_plan": "Use the safe fictional 555 number only for UI demonstration.",
+      "checkout_steps": [
+        "Stage field bags in the lobby demonstration area.",
+        "Complete the fictional room sweep checklist."
+      ],
+      "nearby_luggage_storage_addresses": [
+        "Fictional ferry terminal desk, 1 Compass Quay"
+      ],
+      "luggage_plan": "Demonstration luggage hold at the fictional ferry desk.",
+      "power_note": "No real electrical or access guidance is represented."
+    }
+  ],
+  "cruise": {
+    "ship": "Northstar Explorer coastal vessel (fictional)",
+    "dates": "April 8–10, 2027",
+    "embarkation_port": "Gullrock Landing",
+    "selected_terminal_arrival": "12:00–12:30 PM demonstration window",
+    "departure_time": "2:00 PM",
+    "staterooms": [
+      {
+        "reservation": "DEMO-VESSEL-101",
+        "stateroom": "DEMO-CABIN-A",
+        "deck": "Observation deck",
+        "category": "Twin field cabin",
+        "location": "Fictional forward section",
+        "assigned_travelers": [
+          "Rowan Vale",
+          "Theo Brooks"
+        ]
+      },
+      {
+        "reservation": "DEMO-VESSEL-102",
+        "stateroom": "DEMO-CABIN-B",
+        "deck": "Observation deck",
+        "category": "Accessible field cabin",
+        "location": "Fictional midship section",
+        "assigned_travelers": [
+          "Mina Park",
+          "Jules Hart"
+        ]
+      }
+    ],
+    "sleeping_note": "Cabin assignments are wholly fictional and exist only to exercise the interface.",
+    "ports": [
+      {
+        "date": "2027-04-08",
+        "port": "Gullrock Landing",
+        "arrive": "Embark",
+        "depart": "2:00 PM"
+      },
+      {
+        "date": "2027-04-09",
+        "port": "Cedar Sound",
+        "arrive": "8:00 AM",
+        "depart": "6:00 PM"
+      },
+      {
+        "date": "2027-04-10",
+        "port": "Kestrel Bay",
+        "arrive": "9:00 AM",
+        "depart": "Disembark"
+      }
+    ],
+    "dining": [
+      {
+        "date": "2027-04-08",
+        "time": "6:30 PM",
+        "restaurant": "Beacon Table (fictional)",
+        "party": "4"
+      },
+      {
+        "date": "2027-04-09",
+        "time": "7:00 PM",
+        "restaurant": "Sound Galley (fictional)",
+        "party": "4"
+      }
+    ],
+    "safety_rule": "Verify every real sailing time and safety instruction with the actual operator; this dataset is fictional."
+  },
+  "tours": [
+    {
+      "date": "2027-04-07",
+      "name": "Gullrock Lighthouse History Walk",
+      "type": "Walking tour",
+      "status": "fictional_confirmation",
+      "provider": "Lantern Path Guides (fictional)",
+      "contact": "Casey Reed (fictional)",
+      "phone": "+1 202-555-0111",
+      "time": "2:00 PM–4:00 PM",
+      "duration": "2 hours",
+      "travelers": "Four fictional adults",
+      "meeting": "Fictional lighthouse visitor arch",
+      "map_address": "1 Beacon Rise, Gullrock Island, Northstar Isles",
+      "booking_reference": "DEMO-TOUR-LIGHTHOUSE",
+      "confirmation": "DEMO-CONF-LIGHTHOUSE",
+      "bring": [
+        "Rain layer",
+        "Field notebook",
+        "Reusable water bottle"
+      ]
+    },
+    {
+      "date": "2027-04-09",
+      "name": "Cedar Sound Tidepool Field Session",
+      "type": "Shore activity",
+      "status": "fictional_confirmation",
+      "provider": "Tideglass Ecology (fictional)",
+      "contact": "Morgan Tide (fictional)",
+      "phone": "+1 202-555-0112",
+      "time": "9:30 AM–12:00 PM",
+      "duration": "2.5 hours",
+      "travelers": "Four fictional adults",
+      "meeting": "Fictional public field station",
+      "map_address": "4 Field Station Lane, Cedar Sound, Northstar Isles",
+      "booking_reference": "DEMO-TOUR-TIDEPOOL",
+      "confirmation": "DEMO-CONF-TIDEPOOL",
+      "safety_note": "Use ordinary shoreline pacing and follow real public safety notices when traveling.",
+      "bring": [
+        "Closed-toe water shoes",
+        "Weather layer",
+        "Camera rain cover"
+      ]
+    },
+    {
+      "date": "2027-04-10",
+      "name": "Kestrel Bay Sheltered-Water Kayak Lesson",
+      "type": "Paddling lesson",
+      "status": "fictional_confirmation",
+      "provider": "Compass Cove Paddling (fictional)",
+      "contact": "Taylor Cove (fictional)",
+      "phone": "+1 202-555-0113",
+      "time": "2:30 PM–4:30 PM",
+      "duration": "2 hours",
+      "travelers": "Four fictional adults",
+      "meeting": "Fictional marina classroom",
+      "map_address": "9 Compass Quay, Kestrel Bay, Northstar Isles",
+      "booking_reference": "DEMO-TOUR-KAYAK",
+      "confirmation": "DEMO-CONF-KAYAK",
+      "pin": "DEMO ONLY — NOT A PIN",
+      "cancellation": "Fictional weather cancellation policy for UI demonstration.",
+      "bring": [
+        "Quick-dry layer",
+        "Secure eyewear strap",
+        "Dry bag"
+      ]
+    },
+    {
+      "date": "2027-04-11",
+      "name": "Northstar Night-Sky Observatory Visit",
+      "type": "Evening activity",
+      "status": "fictional_confirmation",
+      "provider": "Northstar Skyworks (fictional)",
+      "time": "8:00 PM–10:00 PM",
+      "duration": "2 hours",
+      "travelers": "Four fictional adults",
+      "meeting": "Fictional observatory entrance",
+      "map_address": "30 Horizon Road, Kestrel Bay, Northstar Isles",
+      "booking_reference": "DEMO-TOUR-SKY",
+      "confirmation": "DEMO-CONF-SKY",
+      "bring": [
+        "Warm layer",
+        "Dim red flashlight"
+      ]
+    },
+    {
+      "date": "2027-04-12",
+      "name": "Ember Harbor Public Market Circuit",
+      "type": "Self-guided activity",
+      "status": "no_reservation_required",
+      "provider": "Ember Harbor Market Association (fictional)",
+      "time": "1:30 PM–3:30 PM",
+      "duration": "2 hours",
+      "travelers": "Four fictional adults",
+      "meeting": "Fictional central information clock",
+      "map_address": "10 Market Square, Ember Harbor, Northstar Isles",
+      "bring": [
+        "Reusable tote",
+        "Field notes"
+      ]
+    }
+  ],
+  "connectivity": {
+    "provider": "DemoLink Travel Connectivity (fictional)",
+    "order": "DEMO-CONNECT-1001",
+    "assignment_status": "All records are inert examples and cannot activate service",
+    "demo_notice": "No QR code, ICCID, activation token, account credential, or genuine setup instruction is included.",
+    "profiles": [
+      {
+        "slot": 1,
+        "phone": "Demo handset A",
+        "demo_identifier": "DEMO-ESIM-A-NOT-ACTIVATABLE"
+      },
+      {
+        "slot": 2,
+        "phone": "Demo handset B",
+        "demo_identifier": "DEMO-ESIM-B-NOT-ACTIVATABLE"
+      },
+      {
+        "slot": 3,
+        "phone": "Demo handset C",
+        "demo_identifier": "DEMO-ESIM-C-NOT-ACTIVATABLE"
+      },
+      {
+        "slot": 4,
+        "phone": "Demo handset D",
+        "demo_identifier": "DEMO-ESIM-D-NOT-ACTIVATABLE"
+      }
+    ],
+    "instructions": [
+      "Demonstration only: choose a fictional traveler assignment.",
+      "For real travel, follow the selected carrier’s official instructions.",
+      "Never paste an activation token or account credential into this reference app."
+    ],
+    "vessel_connectivity": "The fictional vessel network is represented only as an availability reminder; no credentials are stored."
+  },
+  "safety_accessibility": {
+    "public_emergency_guidance": "For a real emergency, contact the public emergency service for the place you are actually visiting.",
+    "traveler_preferences": [
+      {
+        "traveler": "Rowan Vale",
+        "items": [
+          "Schedule a short planning pause after each major transfer.",
+          "Keep the shared paper itinerary easy to reach."
+        ]
+      },
+      {
+        "traveler": "Mina Park",
+        "items": [
+          "Allow extra wayfinding time at unfamiliar terminals.",
+          "Prefer seating near clear departure displays."
+        ]
+      },
+      {
+        "traveler": "Theo Brooks",
+        "items": [
+          "Use a stable gear-loading area before each move.",
+          "Build in a weather-protected camera setup break."
+        ]
+      },
+      {
+        "traveler": "Jules Hart",
+        "items": [
+          "Favor step-free routes when the option is available.",
+          "Keep daily walking pace flexible and include seated breaks."
+        ]
+      }
+    ],
+    "general_guidance": [
+      "Review ordinary travel-insurance documents before departure without storing policy values here.",
+      "Pack general motion-comfort supplies appropriate for the traveler.",
+      "Confirm current weather, public advisories, and accessibility information with authoritative sources.",
+      "This fictional reference contains no personal health profile."
+    ]
+  },
+  "pending_updates": [
+    {
+      "id": "demo_departure_gate",
+      "text": "Record the fictional outbound gate when the demonstration itinerary is refreshed.",
+      "due": "Day before departure"
+    },
+    {
+      "id": "demo_ferry_weather",
+      "text": "Record the fictional ferry weather decision.",
+      "due": "Morning of April 10"
+    },
+    {
+      "id": "demo_lodge_room",
+      "text": "Add the fictional lodge room location.",
+      "due": "At demonstration check-in"
+    },
+    {
+      "id": "demo_observatory_status",
+      "text": "Record the fictional observatory weather status.",
+      "due": "Afternoon of April 11"
+    },
+    {
+      "id": "demo_return_shuttle",
+      "text": "Add the fictional return shuttle meeting point.",
+      "due": "Day before return"
+    },
+    {
+      "id": "demo_accessibility_note",
+      "text": "Record a harmless demonstration accessibility note.",
+      "due": "Before the next transfer"
+    },
+    {
+      "id": "demo_group_briefing",
+      "text": "Confirm the fictional team briefing time.",
+      "due": "First evening"
+    },
+    {
+      "id": "demo_gear_storage",
+      "text": "Record the fictional shared-gear storage location.",
+      "due": "At each lodging"
+    }
+  ],
+  "daily_plan": [
+    {
+      "date": "2027-04-06",
+      "place": "Harbor Ridge → Ember Harbor",
+      "tone": "sky",
+      "flights": [
+        0
+      ],
+      "events": [
+        [
+          "7:15 AM",
+          "Meet at Harbor Ridge",
+          "Complete the fictional team and field-gear check."
+        ],
+        [
+          "9:20 AM",
+          "Blue Heron Air BH412",
+          "Demonstration flight to Northstar Isles Gateway."
+        ],
+        [
+          "12:15 PM",
+          "Tideglass shuttle",
+          "Use DEMO-SHUTTLE-ARRIVAL after the group assembles."
+        ],
+        [
+          "3:00 PM",
+          "Lantern House check-in",
+          "Fictional lodging check-in with inert demonstration access values."
+        ]
+      ],
+      "know": "All providers, times, locations, and booking values in this day are fictional."
+    },
+    {
+      "date": "2027-04-07",
+      "place": "Gullrock Island",
+      "tone": "gold",
+      "events": [
+        [
+          "8:40 AM",
+          "Cedarline Coastal Rail",
+          "Use DEMO-RAIL-204 for interface demonstration."
+        ],
+        [
+          "11:00 AM",
+          "Field station orientation",
+          "Stage notebooks and weather layers."
+        ],
+        [
+          "2:00 PM",
+          "Lighthouse history walk",
+          "Meet at the fictional visitor arch."
+        ]
+      ],
+      "know": "Keep the afternoon flexible for changing coastal weather."
+    },
+    {
+      "date": "2027-04-08",
+      "place": "Gullrock Landing → Coastal vessel",
+      "tone": "navy",
+      "flights": [
+        1
+      ],
+      "events": [
+        [
+          "9:30 AM",
+          "Lodging checkout",
+          "Complete the fictional room and shared-gear sweep."
+        ],
+        [
+          "1:10 PM",
+          "Island connector",
+          "Demonstration transfer to Kestrel Bay Airfield."
+        ],
+        [
+          "2:00 PM",
+          "Northstar Explorer departure",
+          "Board the fictional coastal vessel using DEMO references only."
+        ]
+      ],
+      "know": "The vessel, cabins, and schedule are invented solely to exercise the cruise view."
+    },
+    {
+      "date": "2027-04-09",
+      "place": "Cedar Sound",
+      "tone": "mint",
+      "events": [
+        [
+          "8:00 AM",
+          "Arrive Cedar Sound",
+          "Review the fictional shore plan and public-safety reminder."
+        ],
+        [
+          "9:30 AM",
+          "Tidepool field session",
+          "Use ordinary pacing and the listed weather layers."
+        ],
+        [
+          "4:30 PM",
+          "Return to the vessel",
+          "Complete a fictional gear count before departure."
+        ]
+      ],
+      "know": "Real shoreline conditions and advisories must always come from authoritative sources."
+    },
+    {
+      "date": "2027-04-10",
+      "place": "Kestrel Bay",
+      "tone": "coral",
+      "events": [
+        [
+          "9:00 AM",
+          "Disembark",
+          "Move fictional field bags to the marked staging area."
+        ],
+        [
+          "2:30 PM",
+          "Kayak lesson",
+          "Meet at the fictional marina classroom with dry bags."
+        ],
+        [
+          "4:45 PM",
+          "Mariner’s Rest check-in",
+          "Use only clearly inert demonstration access values."
+        ]
+      ],
+      "know": "The paddling session is fictional and does not represent real safety guidance."
+    },
+    {
+      "date": "2027-04-11",
+      "place": "Kestrel Bay",
+      "tone": "violet",
+      "events": [
+        [
+          "10:00 AM",
+          "Flexible field morning",
+          "Use the pacing and step-free-route reminders."
+        ],
+        [
+          "2:00 PM",
+          "Shared gear reset",
+          "Charge devices and prepare warm layers."
+        ],
+        [
+          "8:00 PM",
+          "Night-sky observatory",
+          "Fictional evening activity subject to the demonstration weather status."
+        ]
+      ],
+      "know": "A deliberate low-intensity morning exercises pacing and accessibility planning."
+    },
+    {
+      "date": "2027-04-12",
+      "place": "Kestrel Bay → Ember Harbor",
+      "tone": "gold",
+      "flights": [
+        2
+      ],
+      "events": [
+        [
+          "10:15 AM",
+          "Island return flight",
+          "Demonstration flight BH216."
+        ],
+        [
+          "1:30 PM",
+          "Public market circuit",
+          "Self-guided fictional activity with no reservation."
+        ],
+        [
+          "5:00 PM",
+          "Return-trip briefing",
+          "Review the shared packing and pending lists."
+        ]
+      ],
+      "know": "Keep the final afternoon easy so the group can prepare for departure."
+    },
+    {
+      "date": "2027-04-13",
+      "place": "Ember Harbor → Harbor Ridge",
+      "tone": "sky",
+      "flights": [
+        3
+      ],
+      "events": [
+        [
+          "10:30 AM",
+          "Final lodging sweep",
+          "Close the fictional room, gear, and return-home checklists."
+        ],
+        [
+          "12:00 PM",
+          "Demonstration shuttle",
+          "Travel to Northstar Isles Gateway."
+        ],
+        [
+          "3:05 PM",
+          "Blue Heron Air BH318",
+          "Fictional return flight to Harbor Ridge."
+        ],
+        [
+          "5:30 PM",
+          "Trip closeout",
+          "Archive only fictional notes and clear demonstration state."
+        ]
+      ],
+      "know": "No real operational detail should ever be entered into this reference dataset."
+    }
+  ],
+  "preparation_groups": {
+    "Departure preparation": [
+      "Confirm fictional traveler names match the demonstration itinerary",
+      "Download public maps and official advisories for real travel separately",
+      "Print the fictional route overview for interface testing",
+      "Review shared pacing and accessibility preferences",
+      "Charge demonstration devices and backup batteries"
+    ],
+    "Home handoff": [
+      "Pause fictional mail and routine deliveries",
+      "Set a generic plant-watering reminder",
+      "Secure windows and ordinary household appliances",
+      "Leave a generic home handoff note without access codes",
+      "Complete a room-by-room departure sweep"
+    ],
+    "Field readiness": [
+      "Stage rain layers and dry bags",
+      "Confirm camera weather protection",
+      "Pack field notebooks and reusable water bottles",
+      "Review the fictional ferry weather contingency",
+      "Save the reference app for offline demonstration"
+    ],
+    "Return home": [
+      "Collect all fictional field bags",
+      "Close shared demonstration checklists",
+      "Resume ordinary household routines",
+      "Clear browser demonstration state",
+      "Archive only fictional trip notes"
+    ]
+  },
+  "demo_vault_groups": [
+    {
+      "title": "Air and rail demonstrations",
+      "items": [
+        {
+          "label": "Outbound flight booking",
+          "value": "DEMO-AIR-0412"
+        },
+        {
+          "label": "Island connector booking",
+          "value": "DEMO-AIR-0208"
+        },
+        {
+          "label": "Coastal rail booking",
+          "value": "DEMO-RAIL-204"
+        },
+        {
+          "label": "Return flight booking",
+          "value": "DEMO-AIR-1318"
+        }
+      ]
+    },
+    {
+      "title": "Lodging and vessel demonstrations",
+      "items": [
+        {
+          "label": "Lantern House booking",
+          "value": "DEMO-LODGE-LANTERN"
+        },
+        {
+          "label": "Mariner’s Rest booking",
+          "value": "DEMO-LODGE-MARINER"
+        },
+        {
+          "label": "Vessel cabin A",
+          "value": "DEMO-VESSEL-101"
+        },
+        {
+          "label": "Vessel cabin B",
+          "value": "DEMO-VESSEL-102"
+        }
+      ]
+    },
+    {
+      "title": "Inert access demonstrations",
+      "items": [
+        {
+          "label": "Entry code",
+          "value": "DEMO ONLY — NOT A REAL CODE"
+        },
+        {
+          "label": "Lockbox",
+          "value": "DEMO ONLY — NO LOCKBOX"
+        },
+        {
+          "label": "Wi-Fi network",
+          "value": "DEMO-NETWORK-NOT-REAL"
+        },
+        {
+          "label": "Wi-Fi password",
+          "value": "DEMO ONLY — NOT A PASSWORD"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,454 @@
+{
+  "identity": {
+    "sample_data": true,
+    "application_name": "Family Travel Command Center",
+    "short_name": "Family Travel",
+    "trip_name": "Northstar Isles Coastal Circuit",
+    "trip_dates": {
+      "start": "2027-04-06",
+      "end": "2027-04-13",
+      "label": "April 6–13, 2027"
+    },
+    "hero_title": [
+      "Your whole trip.",
+      "One field-tested reference."
+    ],
+    "hero_description": "A fictional coastal itinerary demonstrating travel coordination, shared checklists, offline access, and clearly inert booking examples.",
+    "footer_note": "Fictional demonstration data • never store real secrets in this reference app"
+  },
+  "travelers": [
+    {
+      "id": "rowan-vale",
+      "display_name": "Rowan Vale",
+      "role": "Trip coordinator"
+    },
+    {
+      "id": "mina-park",
+      "display_name": "Mina Park",
+      "role": "Logistics lead"
+    },
+    {
+      "id": "theo-brooks",
+      "display_name": "Theo Brooks",
+      "role": "Photography lead"
+    },
+    {
+      "id": "jules-hart",
+      "display_name": "Jules Hart",
+      "role": "Accessibility and safety lead"
+    }
+  ],
+  "airports": {
+    "HBR": "Harbor Ridge Regional Airport",
+    "NIS": "Northstar Isles Gateway",
+    "KBY": "Kestrel Bay Airfield"
+  },
+  "onward_steps": {},
+  "flights": [
+    {
+      "date": "2027-04-06",
+      "route": {
+        "from": "HBR",
+        "to": "NIS"
+      },
+      "flight_number": "BH412",
+      "operating_airline": "Blue Heron Air (fictional)",
+      "departure_local": "2027-04-06T09:20:00",
+      "arrival_local": "2027-04-06T10:55:00",
+      "duration": "1h 35m"
+    },
+    {
+      "date": "2027-04-08",
+      "route": {
+        "from": "NIS",
+        "to": "KBY"
+      },
+      "flight_number": "BH208",
+      "operating_airline": "Blue Heron Air (fictional)",
+      "departure_local": "2027-04-08T13:10:00",
+      "arrival_local": "2027-04-08T13:55:00",
+      "duration": "45m"
+    },
+    {
+      "date": "2027-04-12",
+      "route": {
+        "from": "KBY",
+        "to": "NIS"
+      },
+      "flight_number": "BH216",
+      "operating_airline": "Blue Heron Air (fictional)",
+      "departure_local": "2027-04-12T10:15:00",
+      "arrival_local": "2027-04-12T11:00:00",
+      "duration": "45m"
+    },
+    {
+      "date": "2027-04-13",
+      "route": {
+        "from": "NIS",
+        "to": "HBR"
+      },
+      "flight_number": "BH318",
+      "operating_airline": "Blue Heron Air (fictional)",
+      "departure_local": "2027-04-13T15:05:00",
+      "arrival_local": "2027-04-13T16:40:00",
+      "duration": "1h 35m"
+    }
+  ],
+  "ground_transport": [
+    {
+      "date": "2027-04-06",
+      "route": "Northstar Gateway → Ember Harbor",
+      "status": "fictional_reservation",
+      "primary_plan": "Use the Tideglass Shuttle demonstration booking after the group assembles at arrivals.",
+      "backup_plan": "Use the marked public coach in this fictional scenario."
+    },
+    {
+      "date": "2027-04-07",
+      "route": "Ember Harbor → Gullrock Island",
+      "status": "fictional_reservation",
+      "service": "Cedarline Coastal Rail (fictional)",
+      "departure_local": "2027-04-07T08:40:00",
+      "arrival_local": "2027-04-07T10:05:00"
+    },
+    {
+      "date": "2027-04-10",
+      "route": "Gullrock Island → Kestrel Bay",
+      "status": "weather_dependent",
+      "preferred_plan": "Board Tideglass Ferry 7 after the fictional harbor briefing; retain the afternoon sailing as a weather buffer."
+    },
+    {
+      "date": "2027-04-13",
+      "route": "Cedar Sound → Northstar Gateway",
+      "status": "fictional_reservation",
+      "target_airport_arrival": "1:00 PM",
+      "suggested_departure_window": "11:45 AM–12:00 PM"
+    }
+  ],
+  "lodging": [],
+  "cruise": {
+    "ship": "Northstar Explorer coastal vessel (fictional)",
+    "dates": "April 8–10, 2027",
+    "embarkation_port": "Gullrock Landing",
+    "staterooms": [],
+    "sleeping_note": "Cabin assignments and reservation details are structurally omitted in share-safe mode.",
+    "ports": [
+      {
+        "date": "2027-04-08",
+        "port": "Gullrock Landing",
+        "arrive": "Embark",
+        "depart": "2:00 PM"
+      },
+      {
+        "date": "2027-04-09",
+        "port": "Cedar Sound",
+        "arrive": "8:00 AM",
+        "depart": "6:00 PM"
+      },
+      {
+        "date": "2027-04-10",
+        "port": "Kestrel Bay",
+        "arrive": "9:00 AM",
+        "depart": "Disembark"
+      }
+    ],
+    "dining": [
+      {
+        "date": "2027-04-08",
+        "time": "6:30 PM",
+        "restaurant": "Beacon Table (fictional)",
+        "party": "4"
+      },
+      {
+        "date": "2027-04-09",
+        "time": "7:00 PM",
+        "restaurant": "Sound Galley (fictional)",
+        "party": "4"
+      }
+    ],
+    "safety_rule": "Verify every real sailing time and safety instruction with the actual operator; this dataset is fictional."
+  },
+  "tours": [
+    {
+      "date": "2027-04-07",
+      "name": "Gullrock Lighthouse History Walk",
+      "type": "Walking tour",
+      "status": "fictional_confirmation",
+      "provider": "Lantern Path Guides (fictional)",
+      "time": "2:00 PM–4:00 PM",
+      "duration": "2 hours",
+      "travelers": "Four fictional adults",
+      "bring": [
+        "Rain layer",
+        "Field notebook",
+        "Reusable water bottle"
+      ]
+    },
+    {
+      "date": "2027-04-09",
+      "name": "Cedar Sound Tidepool Field Session",
+      "type": "Shore activity",
+      "status": "fictional_confirmation",
+      "provider": "Tideglass Ecology (fictional)",
+      "time": "9:30 AM–12:00 PM",
+      "duration": "2.5 hours",
+      "travelers": "Four fictional adults",
+      "bring": [
+        "Closed-toe water shoes",
+        "Weather layer",
+        "Camera rain cover"
+      ],
+      "safety_note": "Use ordinary shoreline pacing and follow real public safety notices when traveling."
+    },
+    {
+      "date": "2027-04-10",
+      "name": "Kestrel Bay Sheltered-Water Kayak Lesson",
+      "type": "Paddling lesson",
+      "status": "fictional_confirmation",
+      "provider": "Compass Cove Paddling (fictional)",
+      "time": "2:30 PM–4:30 PM",
+      "duration": "2 hours",
+      "travelers": "Four fictional adults",
+      "bring": [
+        "Quick-dry layer",
+        "Secure eyewear strap",
+        "Dry bag"
+      ],
+      "cancellation": "Fictional weather cancellation policy for UI demonstration."
+    },
+    {
+      "date": "2027-04-11",
+      "name": "Northstar Night-Sky Observatory Visit",
+      "type": "Evening activity",
+      "status": "fictional_confirmation",
+      "provider": "Northstar Skyworks (fictional)",
+      "time": "8:00 PM–10:00 PM",
+      "duration": "2 hours",
+      "travelers": "Four fictional adults",
+      "bring": [
+        "Warm layer",
+        "Dim red flashlight"
+      ]
+    },
+    {
+      "date": "2027-04-12",
+      "name": "Ember Harbor Public Market Circuit",
+      "type": "Self-guided activity",
+      "status": "no_reservation_required",
+      "provider": "Ember Harbor Market Association (fictional)",
+      "time": "1:30 PM–3:30 PM",
+      "duration": "2 hours",
+      "travelers": "Four fictional adults",
+      "bring": [
+        "Reusable tote",
+        "Field notes"
+      ]
+    }
+  ],
+  "connectivity": {
+    "provider": "DemoLink Travel Connectivity (fictional)",
+    "assignment_status": "Connectivity profiles and assignments are structurally omitted in share-safe mode",
+    "demo_notice": "No QR code, ICCID, activation token, account credential, or genuine setup instruction is included.",
+    "profiles": [],
+    "instructions": [
+      "Demonstration only: choose a fictional traveler assignment.",
+      "For real travel, follow the selected carrier’s official instructions.",
+      "Never paste an activation token or account credential into this reference app."
+    ],
+    "vessel_connectivity": "The fictional vessel network is represented only as an availability reminder; no credentials are stored."
+  },
+  "safety_accessibility": {
+    "public_emergency_guidance": "For a real emergency, contact the public emergency service for the place you are actually visiting.",
+    "traveler_preferences": [],
+    "general_guidance": [
+      "Review ordinary travel-insurance documents before departure without storing policy values here.",
+      "Pack general motion-comfort supplies appropriate for the traveler.",
+      "Confirm current weather, public advisories, and accessibility information with authoritative sources.",
+      "This fictional reference contains no personal health profile."
+    ]
+  },
+  "pending_updates": [],
+  "daily_plan": [
+    {
+      "date": "2027-04-06",
+      "place": "Harbor Ridge → Ember Harbor",
+      "tone": "sky",
+      "flights": [
+        0
+      ],
+      "events": [
+        [
+          "7:15 AM",
+          "Meet at Harbor Ridge"
+        ],
+        [
+          "9:20 AM",
+          "Blue Heron Air BH412"
+        ],
+        [
+          "12:15 PM",
+          "Tideglass shuttle"
+        ],
+        [
+          "3:00 PM",
+          "Lantern House check-in"
+        ]
+      ],
+      "know": "All providers, times, locations, and booking values in this day are fictional."
+    },
+    {
+      "date": "2027-04-07",
+      "place": "Gullrock Island",
+      "tone": "gold",
+      "events": [
+        [
+          "8:40 AM",
+          "Cedarline Coastal Rail"
+        ],
+        [
+          "11:00 AM",
+          "Field station orientation"
+        ],
+        [
+          "2:00 PM",
+          "Lighthouse history walk"
+        ]
+      ],
+      "know": "Keep the afternoon flexible for changing coastal weather."
+    },
+    {
+      "date": "2027-04-08",
+      "place": "Gullrock Landing → Coastal vessel",
+      "tone": "navy",
+      "flights": [
+        1
+      ],
+      "events": [
+        [
+          "9:30 AM",
+          "Lodging checkout"
+        ],
+        [
+          "1:10 PM",
+          "Island connector"
+        ],
+        [
+          "2:00 PM",
+          "Northstar Explorer departure"
+        ]
+      ],
+      "know": "The vessel, cabins, and schedule are invented solely to exercise the cruise view."
+    },
+    {
+      "date": "2027-04-09",
+      "place": "Cedar Sound",
+      "tone": "mint",
+      "events": [
+        [
+          "8:00 AM",
+          "Arrive Cedar Sound"
+        ],
+        [
+          "9:30 AM",
+          "Tidepool field session"
+        ],
+        [
+          "4:30 PM",
+          "Return to the vessel"
+        ]
+      ],
+      "know": "Real shoreline conditions and advisories must always come from authoritative sources."
+    },
+    {
+      "date": "2027-04-10",
+      "place": "Kestrel Bay",
+      "tone": "coral",
+      "events": [
+        [
+          "9:00 AM",
+          "Disembark"
+        ],
+        [
+          "2:30 PM",
+          "Kayak lesson"
+        ],
+        [
+          "4:45 PM",
+          "Mariner’s Rest check-in"
+        ]
+      ],
+      "know": "The paddling session is fictional and does not represent real safety guidance."
+    },
+    {
+      "date": "2027-04-11",
+      "place": "Kestrel Bay",
+      "tone": "violet",
+      "events": [
+        [
+          "10:00 AM",
+          "Flexible field morning"
+        ],
+        [
+          "2:00 PM",
+          "Shared gear reset"
+        ],
+        [
+          "8:00 PM",
+          "Night-sky observatory"
+        ]
+      ],
+      "know": "A deliberate low-intensity morning exercises pacing and accessibility planning."
+    },
+    {
+      "date": "2027-04-12",
+      "place": "Kestrel Bay → Ember Harbor",
+      "tone": "gold",
+      "flights": [
+        2
+      ],
+      "events": [
+        [
+          "10:15 AM",
+          "Island return flight"
+        ],
+        [
+          "1:30 PM",
+          "Public market circuit"
+        ],
+        [
+          "5:00 PM",
+          "Return-trip briefing"
+        ]
+      ],
+      "know": "Keep the final afternoon easy so the group can prepare for departure."
+    },
+    {
+      "date": "2027-04-13",
+      "place": "Ember Harbor → Harbor Ridge",
+      "tone": "sky",
+      "flights": [
+        3
+      ],
+      "events": [
+        [
+          "10:30 AM",
+          "Final lodging sweep"
+        ],
+        [
+          "12:00 PM",
+          "Demonstration shuttle"
+        ],
+        [
+          "3:05 PM",
+          "Blue Heron Air BH318"
+        ],
+        [
+          "5:30 PM",
+          "Trip closeout"
+        ]
+      ],
+      "know": "No real operational detail should ever be entered into this reference dataset."
+    }
+  ],
+  "preparation_groups": {},
+  "demo_vault_groups": []
+}

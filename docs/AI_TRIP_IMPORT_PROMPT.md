@@ -1,6 +1,13 @@
 # AI Trip Import Prompt
 
-Copy the prompt below into ChatGPT, Codex, Claude, or another capable coding assistant that can access this repository. Attach or paste only the source material you are comfortable sharing with that service.
+Copy the prompt below into ChatGPT, Codex, Claude, or another capable LLM. Attach or paste only the source material you are comfortable sharing with that service.
+
+If the LLM cannot access or edit the repository, attach these two sample files along with your source material:
+
+- `data/northstar-isles-trip.json`
+- `data/northstar-isles-packing.md`
+
+Ask it to return two **complete downloadable replacement files** with those exact filenames. Put the downloaded files back in `data/` and run the appropriate Start Here launcher. Do not accept partial JSON or Markdown snippets, and do not let the LLM claim it ran validation commands it could not actually run.
 
 ## Copy/paste prompt
 
@@ -8,6 +15,11 @@ Copy the prompt below into ChatGPT, Codex, Claude, or another capable coding ass
 You are helping me customize this Family Travel Command Center repository for a real trip.
 
 Work only inside the repository copy I provide. Do not publish, deploy, initialize Git, commit, push, or contact any traveler or provider.
+
+If you cannot access or edit the repository directly, use the attached canonical sample files as the schema and return two complete downloadable replacements named exactly:
+- northstar-isles-trip.json
+- northstar-isles-packing.md
+Do not claim to have run commands or browser checks you could not run. I will place the files in data/ and use the local Start Here launcher to regenerate and validate them.
 
 First inspect the repository schema and instructions, especially:
 - README.md

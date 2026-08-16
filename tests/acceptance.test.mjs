@@ -214,6 +214,39 @@ test("ordinary workflows are portable and loopback-only by default", async () =>
   assert.match(compose, /api\/health/);
 });
 
+test("first-run launchers are local-only, version-aware, and non-deploying", async () => {
+  const windows = await read("START-HERE-WINDOWS.cmd");
+  const shell = await read("START-HERE-MAC-LINUX.sh");
+  const helper = await read("scripts/start-here.mjs");
+  const readme = await read("README.md");
+  const dataGuide = await read("data/README.md");
+
+  for (const launcher of [windows, shell]) {
+    assert.match(launcher, /process\.versions\.node/);
+    assert.match(launcher, /22\.13/);
+    assert.match(launcher, /https:\/\/nodejs\.org\/en\/download/);
+    assert.match(launcher, /npm install --no-audit --no-fund/);
+    assert.match(launcher, /npm run regenerate/);
+    assert.match(launcher, /scripts[\\/]start-here\.mjs/);
+  }
+
+  assert.match(helper, /http:\/\/127\.0\.0\.1:3000/);
+  assert.match(helper, /HOST: "127\.0\.0\.1"/);
+  assert.match(helper, /APP_INTERNAL_HOST: "127\.0\.0\.1"/);
+  assert.match(helper, /Opening .*default browser/);
+  assert.doesNotMatch(helper, /0\.0\.0\.0/);
+
+  const launcherSources = `${windows}\n${shell}\n${helper}`;
+  assert.doesNotMatch(
+    launcherSources,
+    /git\s+(?:commit|push)|cloudflare|netsh|firewall|sudo|brew\s+install|apt(?:-get)?\s+install|Invoke-WebRequest|curl[^\n]*\|/i,
+  );
+  assert.match(readme, /Don't use a coding agent\? Start here\./);
+  assert.match(dataGuide, /northstar-isles-trip\.json/);
+  assert.match(dataGuide, /northstar-isles-packing\.md/);
+  assert.match(dataGuide, /docs\/DEPLOYMENT\.md/);
+});
+
 test("unused starter authentication and platform database scaffolding are absent", async () => {
   for (const removed of [
     ".openai/hosting.json",

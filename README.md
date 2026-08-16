@@ -4,6 +4,24 @@ A field-tested family travel dashboard that brings an itinerary, transportation,
 
 The original application was built for and used during a real multi-country European family trip. This repository contains none of that family's private trip data. It has been replaced with **Northstar Isles**, a wholly fictional coastal journey designed to demonstrate the product safely.
 
+## Don't use a coding agent? Start here.
+
+You can run and personalize this project without Codex, Claude Code, OpenClaw, or another coding agent.
+
+1. Install [Node.js 22.13 or newer](https://nodejs.org/en/download). The launcher checks the installed version and gives you that official download link if Node is missing or too old. It never installs system software for you.
+2. On [the GitHub repository page](https://github.com/briantkolb/family-travel-command-center), choose **Code → Download ZIP**, then extract the ZIP to a normal folder.
+3. To try the fictional Northstar Isles demo immediately:
+   - **Windows:** double-click `START-HERE-WINDOWS.cmd`.
+   - **macOS/Linux:** open Terminal and run `sh START-HERE-MAC-LINUX.sh` from the extracted folder. You can also type `sh `, drag the script into Terminal, and press Return.
+4. To use your own trip, ask ChatGPT or another capable LLM to follow [`docs/AI_TRIP_IMPORT_PROMPT.md`](docs/AI_TRIP_IMPORT_PROMPT.md) and return two complete downloadable replacement files:
+   - `northstar-isles-trip.json`
+   - `northstar-isles-packing.md`
+5. Put those two files in the [`data/`](data/) folder, replacing the fictional sample files, and run **Start Here** again. The full file-drop walkthrough is in [`data/README.md`](data/README.md).
+
+The launcher checks dependencies, runs `npm install`, regenerates the browser data from those two canonical files, starts a loopback-only development server, and opens [http://127.0.0.1:3000](http://127.0.0.1:3000). Keep its terminal window open while using the app; press `Ctrl+C` there to stop it. If Windows then asks `Terminate batch job?`, enter `Y`.
+
+The launchers do not collect credentials, install Node or other system software, open firewall ports, bind publicly, deploy, or publish your files. For phone, network, or hosted access, use the separate [Deployment guide](docs/DEPLOYMENT.md).
+
 ## What it does
 
 - Combines a daily itinerary with flights and ground transportation.
@@ -18,7 +36,7 @@ Northstar Isles, its travelers, providers, addresses, phone numbers, reservation
 
 ## Who this is for
 
-This starter is for families and trip organizers who want a practical command center and are comfortable following copy-and-paste terminal instructions. You do not need to understand React, SQLite, Docker, or the internal build system to try it or update its data.
+This starter is for families and trip organizers who want a practical command center. The Start Here launchers provide a nontechnical first run, while the developer commands remain available for people who prefer a terminal workflow. You do not need to understand React, SQLite, Docker, or the internal build system to try it or update its data.
 
 You do need:
 
@@ -98,11 +116,11 @@ For a complete field-by-field walkthrough, read [Make It Yours](docs/MAKE_IT_YOU
 
 ## C. Use AI to build your trip
 
-A capable AI coding assistant can inspect this repository and turn source material into the canonical schema. You can supply pasted itinerary text, exported emails, PDFs, screenshots, reservation confirmations, spreadsheets, or your own notes.
+A capable AI assistant can turn source material into the canonical schema. An ordinary ChatGPT-style conversation can return the two complete replacement files for you to place in `data/`; an agent with repository access can edit them in place. You can supply pasted itinerary text, exported emails, PDFs, screenshots, reservation confirmations, spreadsheets, or your own notes.
 
 The assistant must treat Northstar Isles only as an example and must never guess a missing gate, address, date, confirmation number, traveler, or reservation detail. Unknown information should remain explicitly pending for human review.
 
-Use the reusable [AI Trip Import Prompt](docs/AI_TRIP_IMPORT_PROMPT.md). It tells the assistant which files to edit, what not to invent, which sensitive values require special care, and which validation commands to run.
+Use the reusable [AI Trip Import Prompt](docs/AI_TRIP_IMPORT_PROMPT.md). It tells the assistant which files to prepare, what not to invent, which sensitive values require special care, and what must be reviewed. The exact no-agent download-and-drop workflow is in [`data/README.md`](data/README.md).
 
 Before giving documents to any AI service, understand that service's data-handling policy and remove material it does not need. A repository is not a secure document vault.
 
@@ -133,8 +151,10 @@ The share-safe view is available at `http://127.0.0.1:3000/?share=1`. It structu
 ## F. Project structure
 
 ```text
+START-HERE-WINDOWS.cmd       Windows first-run launcher
+START-HERE-MAC-LINUX.sh      macOS/Linux first-run launcher
 app/                         React interface and generated browser data
-data/                        Canonical trip JSON and packing Markdown to edit
+data/                        Canonical trip JSON and packing Markdown to replace/edit
 docs/                        Customization, AI-import, and deployment guides
 lib/                         Validation, redaction, and static-asset helpers
 public/                      PWA manifest, service worker, and icons

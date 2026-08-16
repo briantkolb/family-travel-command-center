@@ -189,7 +189,7 @@ test("PWA uses a neutral identity and only neutral icon references", async () =>
   ]);
   const serviceWorker = await read("public/sw.js");
   assert.match(serviceWorker, /travel-command-center-reference-/);
-  assert.match(serviceWorker, /shell-v3/);
+  assert.match(serviceWorker, /shell-v4/);
   assert.match(serviceWorker, /manifest\.webmanifest\?v=2/);
   assert.match(serviceWorker, /favicon\.svg/);
   assert.match(serviceWorker, /maskable-icon-512\.png/);

@@ -191,6 +191,98 @@ test("production hydrates, navigates, persists state, and works offline with iso
   }
 });
 
+test("direct share-safe navigation hydrates cleanly before normal private bootstrap", { timeout: 60_000 }, async () => {
+  const dataDir = await mkdtemp(path.join(tmpdir(), "travel-reference-hydration-browser-"));
+  const port = 26500 + Math.floor(Math.random() * 100);
+  let running;
+  let browser;
+  let shareContext;
+  let normalContext;
+  try {
+    running = await startProductionServer({ dataDir, port, appPort: port + 1 });
+    browser = await chromium.launch({ headless: true });
+
+    shareContext = await browser.newContext({ serviceWorkers: "allow" });
+    const sharePage = await shareContext.newPage();
+    const shareConsoleErrors = [];
+    const sharePageErrors = [];
+    const shareRequests = [];
+    sharePage.on("console", (message) => {
+      if (message.type() === "error") shareConsoleErrors.push(message.text());
+    });
+    sharePage.on("pageerror", (error) => sharePageErrors.push(error.message));
+    sharePage.on("request", (request) => shareRequests.push(request.url()));
+
+    const shareResponse = await sharePage.goto(`${running.origin}/?share=1`, {
+      waitUntil: "networkidle",
+    });
+    assert.equal(shareResponse?.status(), 200);
+    const shareResponseHtml = await shareResponse.text();
+    await sharePage.getByRole("heading", { name: /Your whole trip/i }).waitFor();
+    await sharePage.getByRole("button", { name: "Private view", exact: true }).waitFor();
+    assert.equal(await sharePage.locator("main.share-mode").count(), 1);
+    assert.equal(
+      shareRequests.some((url) => /\/api\/trip(?:\?|$)/.test(url)),
+      false,
+    );
+    assert.ok(shareRequests.some((url) => /\/api\/state\?share=1$/.test(url)));
+    assert.deepEqual(shareConsoleErrors, []);
+    assert.deepEqual(sharePageErrors, []);
+
+    const shareDom = await sharePage.content();
+    assert.equal(await sharePage.locator(".private-field").count(), 0);
+    for (const excluded of excludedShareValues) {
+      assert.equal(shareResponseHtml.includes(excluded), false, excluded);
+      assert.equal(shareDom.includes(excluded), false, excluded);
+    }
+
+    const shareStorage = await sharePage.evaluate(() => ({
+      privateState: localStorage.getItem("travel-reference-state-v1"),
+      privateQueue: localStorage.getItem("travel-reference-queue-v1"),
+      shareState: JSON.parse(
+        localStorage.getItem("travel-reference-share-state-v1") || "{}",
+      ),
+    }));
+    assert.equal(shareStorage.privateState, null);
+    assert.equal(shareStorage.privateQueue, null);
+    assert.deepEqual(Object.keys(shareStorage.shareState.assignments || {}), []);
+    assert.deepEqual(Object.keys(shareStorage.shareState.pending || {}), []);
+    await shareContext.close();
+    shareContext = undefined;
+
+    normalContext = await browser.newContext({ serviceWorkers: "allow" });
+    const normalPage = await normalContext.newPage();
+    const normalConsoleErrors = [];
+    const normalPageErrors = [];
+    const normalRequests = [];
+    normalPage.on("console", (message) => {
+      if (message.type() === "error") normalConsoleErrors.push(message.text());
+    });
+    normalPage.on("pageerror", (error) => normalPageErrors.push(error.message));
+    normalPage.on("request", (request) => normalRequests.push(request.url()));
+
+    const normalResponse = await normalPage.goto(running.origin, {
+      waitUntil: "networkidle",
+    });
+    assert.equal(normalResponse?.status(), 200);
+    await normalPage.getByRole("heading", { name: /Your whole trip/i }).waitFor();
+    await normalPage
+      .getByRole("button", { name: "Share-safe view", exact: true })
+      .waitFor();
+    await openTab(normalPage, "Lodging", "Lodging & access");
+    await normalPage.locator(".lodging-card").first().waitFor();
+    assert.ok(normalRequests.some((url) => /\/api\/trip(?:\?|$)/.test(url)));
+    assert.deepEqual(normalConsoleErrors, []);
+    assert.deepEqual(normalPageErrors, []);
+  } finally {
+    await shareContext?.close();
+    await normalContext?.close();
+    await browser?.close();
+    await stopProductionServer(running?.child);
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});
+
 test("share-safe production never requests or stores excluded detail categories", { timeout: 60_000 }, async () => {
   const dataDir = await mkdtemp(path.join(tmpdir(), "travel-reference-share-browser-"));
   const port = 26600 + Math.floor(Math.random() * 300);

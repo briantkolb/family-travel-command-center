@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "travel-command-center-reference-";
-const CACHE = `${CACHE_PREFIX}shell-v3`;
+const CACHE = `${CACHE_PREFIX}shell-v4`;
 const SHELL = [
   "/",
   "/manifest.webmanifest?v=2",
@@ -45,7 +45,7 @@ self.addEventListener("fetch", (event) => {
   const isShellAsset = SHELL.includes(`${url.pathname}${url.search}`) || SHELL.includes(url.pathname);
   if (!isNavigation && !isBuildAsset && !isShellAsset) return;
 
-  if (isBuildAsset || isShellAsset) {
+  if (isBuildAsset || (!isNavigation && isShellAsset)) {
     event.respondWith(
       caches.match(request).then(
         (cached) =>

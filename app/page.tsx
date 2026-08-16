@@ -129,19 +129,16 @@ function cachedState(shareMode: boolean): SharedState {
   }
 }
 
-function useSharedState(shareMode: boolean) {
-  const [state, setState] = useState<SharedState>(() => {
-    const local = cachedState(shareMode);
-    return {
-      checks: local.checks || {},
-      assignments: local.assignments || {},
-      pending: local.pending || {},
-      syncedAt: local.syncedAt,
-    };
+function useSharedState(resolvedShareMode: boolean | null) {
+  const shareMode = resolvedShareMode !== false;
+  const [state, setState] = useState<SharedState>({
+    checks: {},
+    assignments: {},
+    pending: {},
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [queueSize, setQueueSize] = useState(() => getQueue(shareMode).length);
+  const [queueSize, setQueueSize] = useState(0);
 
   const remember = useCallback((next: SharedState) => {
     const stored = shareMode
@@ -238,7 +235,20 @@ function useSharedState(shareMode: boolean) {
   );
 
   useEffect(() => {
-    const kickoff = window.setTimeout(() => refresh(), 0);
+    if (resolvedShareMode === null) return;
+
+    const kickoff = window.setTimeout(() => {
+      const local = cachedState(shareMode);
+      setState({
+        checks: local.checks || {},
+        assignments: local.assignments || {},
+        pending: local.pending || {},
+        syncedAt: local.syncedAt,
+      });
+      setQueueSize(getQueue(shareMode).length);
+      setError("");
+      refresh();
+    }, 0);
     const timer = window.setInterval(() => refresh(true), 15_000);
     const visible = () => {
       if (document.visibilityState === "visible") refresh(true);
@@ -249,7 +259,7 @@ function useSharedState(shareMode: boolean) {
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [refresh]);
+  }, [refresh, resolvedShareMode, shareMode]);
 
   const push = useCallback(
     async (item: QueueItem, optimistic: (old: SharedState) => SharedState) => {
@@ -640,13 +650,12 @@ export default function Home() {
     "all" | "remaining" | "completed"
   >("all");
   const [query, setQuery] = useState("");
-  const [shareMode] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      new URLSearchParams(window.location.search).get("share") === "1",
+  const [resolvedShareMode, setResolvedShareMode] = useState<boolean | null>(
+    null,
   );
+  const shareMode = resolvedShareMode !== false;
   const [trip, setTrip] = useState<TripData>(initialTrip);
-  const shared = useSharedState(shareMode);
+  const shared = useSharedState(resolvedShareMode);
 
   const travelers = trip.travelers;
   const travelerNames = travelers.map(
@@ -660,18 +669,28 @@ export default function Home() {
   useEffect(() => {
     if ("serviceWorker" in navigator)
       navigator.serviceWorker
-        .register("/sw.js?v=3", { updateViaCache: "none" })
+        .register("/sw.js?v=4", { updateViaCache: "none" })
         .catch(() => undefined);
-    if (!shareMode) {
-      fetch("/api/trip", { cache: "no-store" })
-        .then((response) => {
-          if (!response.ok) throw new Error("Private reference data unavailable");
-          return response.json();
-        })
-        .then((value) => setTrip(value as TripData))
-        .catch(() => undefined);
-    }
-  }, [shareMode]);
+
+    const resolveMode = window.setTimeout(() => {
+      const nextShareMode =
+        new URLSearchParams(window.location.search).get("share") === "1";
+      setResolvedShareMode(nextShareMode);
+
+      if (!nextShareMode) {
+        fetch("/api/trip", { cache: "no-store" })
+          .then((response) => {
+            if (!response.ok)
+              throw new Error("Private reference data unavailable");
+            return response.json();
+          })
+          .then((value) => setTrip(value as TripData))
+          .catch(() => undefined);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(resolveMode);
+  }, []);
 
   const nav: { id: Tab; label: string }[] = [
     { id: "today", label: "Today" },
@@ -692,8 +711,9 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const toggleShareMode = () => {
+    if (resolvedShareMode === null) return;
     const url = new URL(window.location.href);
-    if (shareMode) url.searchParams.delete("share");
+    if (resolvedShareMode) url.searchParams.delete("share");
     else url.searchParams.set("share", "1");
     window.location.assign(url);
   };
@@ -751,6 +771,7 @@ export default function Home() {
         <button
           className="privacy-toggle"
           onClick={toggleShareMode}
+          disabled={resolvedShareMode === null}
         >
           {shareMode ? "Private view" : "Share-safe view"}
         </button>

@@ -19,8 +19,10 @@ The JSON root must be an object.
 - `travelers` is a non-empty array. Every traveler has a non-empty, unique `id` and `display_name`.
 - `daily_plan` is a non-empty array. Every day has a non-empty `date` and `place`.
 - A day's `events` may be omitted or empty. When present, it is an array of two- or three-string rows: `[time, title]` or `[time, title, detail]`.
+- A day's `tone` is optional. When present, it is a non-empty style name; omit it when no tone is needed.
 - Optional section lists, when present, are arrays: `flights`, `ground_transport`, `lodging`, `tours`, `pending_updates`, and `demo_vault_groups`.
-- Optional containers, when present, are objects: `airports`, `onward_steps`, `cruise`, `connectivity`, `safety_accessibility`, and `preparation_groups`.
+- Optional containers, when present, are objects: `airports`, `onward_steps`, `cruise`, `connectivity`, `safety_accessibility`, and `preparation_groups`. Every `airports` and `onward_steps` value must be a string.
+- Every `demo_vault_groups` item must have meaningful, non-empty string `label` and `value` fields. Omit incomplete items; never use `undefined` as content.
 - `cruise.staterooms`, `cruise.ports`, and `cruise.dining` may be omitted or empty arrays.
 - `connectivity.profiles` and `connectivity.instructions` may be omitted or empty arrays. Profile slots, when used, are unique integers from 1 through 4.
 - `safety_accessibility.traveler_preferences` and `general_guidance` may be omitted or empty arrays. A traveler may legitimately have only one approved operational preference.
@@ -84,6 +86,8 @@ Create one section per traveler using the exact `display_name`:
 |---|---|---|---|---|---|
 | 1 | Planning | Trip documents | Day bag | Before departure | Review before travel. |
 ```
+
+The heading separator is the literal em dash character (`—`). A hyphen (`-`) or en dash (`–`) is not accepted.
 
 Every traveler needs at least one numbered row and every row needs all six cells. Escape a literal pipe as `\|`; use `<br>` for a deliberate line break inside a cell.
 

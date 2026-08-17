@@ -50,6 +50,45 @@ test("sparse real-data canonical inputs preserve strict structure and sharing", 
     JSON.stringify(shareTrip).includes(PRIVATE_BUILD_VALIDATION_CANARY),
     false,
   );
+
+  for (const separator of ["-", "–"]) {
+    const invalidPacking = sparsePackingSource.replace(
+      "## Alex Morgan — Traveler",
+      `## Alex Morgan ${separator} Traveler`,
+    );
+    assert.throws(
+      () => buildPackingData(invalidPacking, sparseTrip),
+      /literal em dash separator \(—\)/,
+    );
+  }
+
+  const invalidAirports = structuredClone(sparseTrip);
+  invalidAirports.airports.LHR = 123;
+  assert.throws(
+    () => validateCanonicalTrip(invalidAirports),
+    /trip\.airports\.LHR must be a string/,
+  );
+
+  const invalidOnwardSteps = structuredClone(sparseTrip);
+  invalidOnwardSteps.onward_steps["LHR-CDG"] = { instruction: "Continue" };
+  assert.throws(
+    () => validateCanonicalTrip(invalidOnwardSteps),
+    /trip\.onward_steps\.LHR-CDG must be a string/,
+  );
+
+  const invalidVaultItem = structuredClone(sparseTrip);
+  invalidVaultItem.demo_vault_groups = [
+    { title: "Incomplete", items: [{ label: "Booking" }] },
+  ];
+  assert.throws(
+    () => validateCanonicalTrip(invalidVaultItem),
+    /demo_vault_groups\[0\]\.items\[0\]\.value must be a non-empty string/,
+  );
+  invalidVaultItem.demo_vault_groups[0].items[0] = { value: "DEMO-BOOKING" };
+  assert.throws(
+    () => validateCanonicalTrip(invalidVaultItem),
+    /demo_vault_groups\[0\]\.items\[0\]\.label must be a non-empty string/,
+  );
 });
 
 test(
@@ -83,10 +122,18 @@ test(
       await openTab(page, "Itinerary", "Daily itinerary");
       await openTab(page, "Flights + Transport", "Flights & transportation");
       await openTab(page, "Lodging", "Lodging & access");
+      assert.equal(await page.locator(".lodging-card").count(), 1);
+      await page
+        .getByRole("heading", { name: "Example London Stay", exact: true })
+        .waitFor();
+      await page
+        .getByText("1 Example Square, London", { exact: true })
+        .waitFor();
       assert.equal(await page.getByRole("link", { name: /Call / }).count(), 0);
       assert.equal(await page.getByRole("link", { name: "WhatsApp" }).count(), 0);
       assert.equal(await page.getByText("Equipment note:").count(), 0);
       assert.equal(await page.getByRole("heading", { name: /Luggage options/ }).count(), 0);
+      assert.equal(await page.locator(".tone-undefined").count(), 0);
 
       await openTab(page, "Cruise", "Coastal vessel command center");
       await page

@@ -177,10 +177,14 @@ function normalizePrivateTrip(value: unknown): TripData {
       flights: asArray(day.flights),
     })),
     preparation_groups: preparationGroups,
-    demo_vault_groups: asRecordArray(trip.demo_vault_groups).map((group) => ({
-      ...group,
-      items: asRecordArray(group.items),
-    })),
+    demo_vault_groups: asRecordArray(trip.demo_vault_groups)
+      .map((group) => ({
+        ...group,
+        items: asRecordArray(group.items).filter(
+          (item) => hasText(item.label) && hasText(item.value),
+        ),
+      }))
+      .filter((group) => group.items.length > 0),
   };
 }
 
@@ -694,9 +698,10 @@ function DayCard({
   const flightIndexes = asArray<number>(day.flights).filter(
     (index) => Number.isInteger(index) && Boolean(flights[index]),
   );
+  const tone = hasText(day.tone) ? slug(day.tone) : "";
   return (
     <details
-      className={`day-card tone-${day.tone}`}
+      className={`day-card${tone ? ` tone-${tone}` : ""}`}
       open={firstDay}
     >
       <summary>
@@ -2070,15 +2075,17 @@ function PrivateHome({
                 ? "Demonstration values are hidden in print and share-safe modes. This interface does not encrypt values and must never be used as a real password, access-code, or booking vault."
                 : "These private references are omitted from share-safe mode. This interface does not encrypt values; keep passwords, access codes, and ticket payloads in the provider's protected system."}
             </div>
-            {trip.demo_vault_groups.map((group: LooseRecord) => (
-              <div key={group.title}>
-                <h2 className="section-title">{group.title}</h2>
+            {trip.demo_vault_groups.map((group: LooseRecord, groupIndex: number) => (
+              <div key={`${text(group.title, "private-references")}-${groupIndex}`}>
+                {hasText(group.title) && (
+                  <h2 className="section-title">{group.title}</h2>
+                )}
                 <div className="secret-grid">
-                  {group.items.map((item: LooseRecord) => (
+                  {asRecordArray(group.items).map((item: LooseRecord) => (
                     <Secret
                       key={`${group.title}-${item.label}`}
-                      label={item.label}
-                      value={item.value}
+                      label={text(item.label)}
+                      value={text(item.value)}
                       shareMode={shareMode}
                     />
                   ))}

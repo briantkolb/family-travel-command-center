@@ -380,7 +380,16 @@ test("direct share-safe navigation hydrates cleanly before normal private bootst
     await normalPage
       .getByRole("button", { name: "Open share-safe view", exact: true })
       .waitFor();
-    await openTab(normalPage, "Itinerary", "Daily itinerary");
+    await openTab(normalPage, "Lodging", "Lodging & access");
+    assert.equal(
+      await normalPage.locator(".lodging-card").count(),
+      referenceTrip.lodging.length,
+    );
+    if (referenceTrip.lodging.length) {
+      await normalPage.locator(".lodging-card").first().waitFor();
+    } else {
+      await normalPage.getByText("No lodging records added.", { exact: true }).waitFor();
+    }
     assert.ok(normalRequests.some((url) => /\/api\/trip(?:\?|$)/.test(url)));
     assert.ok(normalRequests.some((url) => /\/api\/packing(?:\?|$)/.test(url)));
     assert.deepEqual(normalConsoleErrors, []);

@@ -11,7 +11,10 @@ import {
 
 const root = path.resolve(import.meta.dirname, "..");
 const referenceTrip = JSON.parse(
-  await readFile(path.join(root, "data", "northstar-isles-trip.json"), "utf8"),
+  await readFile(path.join(root, "app", "data", "trip.json"), "utf8"),
+);
+const referenceShareTrip = JSON.parse(
+  await readFile(path.join(root, "app", "data", "trip-share.json"), "utf8"),
 );
 
 test("neutral production HTML and every referenced local asset are available", { timeout: 30_000 }, async () => {
@@ -26,8 +29,8 @@ test("neutral production HTML and every referenced local asset are available", {
     const html = await response.text();
     assert.match(html, /Family Travel Command Center/);
     assert.match(html, /Loading private trip/);
-    assert.equal(html.includes(referenceTrip.sharing.identity.share_title), false);
-    assert.doesNotMatch(html, /Your whole trip/);
+    assert.equal(html.includes(referenceShareTrip.identity.share_title), false);
+    assert.equal(html.includes(referenceTrip.identity.trip_name), false);
     assert.doesNotMatch(html, /manifest\.webmanifest/);
     assert.doesNotMatch(html, /fonts\.googleapis|codex-preview/i);
     assert.match(response.headers.get("content-security-policy") || "", /frame-ancestors 'none'/);
@@ -61,14 +64,16 @@ test("neutral production HTML and every referenced local asset are available", {
     const deliveredText = browserDelivered.join("\n");
     const excludedValues = [
       referenceTrip.identity.private_validation_canary,
-      ...referenceTrip.flights.map((record) => record.confirmation),
-      ...referenceTrip.lodging.flatMap((record) => [
+      ...(referenceTrip.flights || []).map((record) => record.confirmation),
+      ...(referenceTrip.lodging || []).flatMap((record) => [
         record.confirmation,
         record.host_phone,
         record.wifi?.network,
       ]),
-      ...referenceTrip.cruise.staterooms.map((record) => record.reservation),
-      ...referenceTrip.ground_transport.flatMap((record) => [
+      ...(referenceTrip.cruise?.staterooms || []).map(
+        (record) => record.reservation,
+      ),
+      ...(referenceTrip.ground_transport || []).flatMap((record) => [
         record.pnr,
         ...Object.values(record.boarding_codes || {}),
       ]),

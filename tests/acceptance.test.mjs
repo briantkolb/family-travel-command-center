@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
+import {
+  PRIVATE_BUILD_VALIDATION_CANARY,
+  validateCanonicalTrip,
+  withPrivateBuildValidationCanary,
+} from "../lib/canonical-trip.mjs";
 import { validDemoAssignment } from "../lib/reference-policy.mjs";
 import {
   diagnoseShareProfile,
@@ -24,31 +29,31 @@ test("canonical trip is the generated application dataset", async () => {
   const canonical = JSON.parse(await read("data/northstar-isles-trip.json"));
   const generated = JSON.parse(await read("app/data/trip.json"));
   const shareSafe = JSON.parse(await read("app/data/trip-share.json"));
-  assert.deepEqual(generated, canonical);
+  assert.deepEqual(generated, withPrivateBuildValidationCanary(canonical));
   assert.deepEqual(shareSafe, toShareSafeTrip(canonical));
-  assert.ok(canonical.identity.trip_name.trim());
-  assert.equal(typeof canonical.identity.sample_data, "boolean");
-  assert.ok(canonical.travelers.length >= 1);
-  assert.ok(canonical.daily_plan.length >= 1);
   assert.equal(
-    new Set(canonical.travelers.map(({ id }) => id)).size,
-    canonical.travelers.length,
+    generated.identity.private_validation_canary,
+    PRIVATE_BUILD_VALIDATION_CANARY,
   );
+  assert.equal("private_validation_canary" in canonical.identity, false);
+  validateCanonicalTrip(canonical);
 });
 
 test("share-safe seed structurally omits private-detail categories", async () => {
   const shareSafe = JSON.parse(await read("app/data/trip-share.json"));
-  const canonical = JSON.parse(await read("data/northstar-isles-trip.json"));
+  const canonical = JSON.parse(await read("app/data/trip.json"));
   const serialized = JSON.stringify(shareSafe);
   const excluded = [
-    ...canonical.flights.flatMap((record) => [record.confirmation]),
-    ...canonical.lodging.flatMap((record) => [
+    ...(canonical.flights || []).flatMap((record) => [record.confirmation]),
+    ...(canonical.lodging || []).flatMap((record) => [
       record.confirmation,
       record.host_phone,
       record.wifi?.network,
     ]),
-    ...canonical.cruise.staterooms.map((record) => record.reservation),
-    ...canonical.ground_transport.flatMap((record) => [
+    ...(canonical.cruise?.staterooms || []).map(
+      (record) => record.reservation,
+    ),
+    ...(canonical.ground_transport || []).flatMap((record) => [
       record.pnr,
       ...Object.values(record.boarding_codes || {}),
     ]),
@@ -68,26 +73,26 @@ test("share-safe seed structurally omits private-detail categories", async () =>
 });
 
 test("sharing-profile diagnostics distinguish valid, absent, and invalid input", async () => {
-  const canonical = JSON.parse(await read("data/northstar-isles-trip.json"));
-  const valid = diagnoseShareProfile(canonical);
+  const fixture = JSON.parse(await read("tests/fixtures/sample-trip.json"));
+  const valid = diagnoseShareProfile(fixture);
   assert.equal(valid.status, "valid");
   assert.deepEqual(valid.problems, []);
   assert.deepEqual(valid.counts, {
-    days: canonical.sharing.days.length,
-    transport: canonical.sharing.transport.length,
-    ports: canonical.sharing.ports.length,
-    tours: canonical.sharing.tours.length,
+    days: fixture.sharing.days.length,
+    transport: fixture.sharing.transport.length,
+    ports: fixture.sharing.ports.length,
+    tours: fixture.sharing.tours.length,
   });
-  assert.match(formatShareProfileDiagnostic(canonical), /^sharing=accepted:/);
-  assert.match(formatShareProfileDiagnostic(canonical), /days=\d+ transport=\d+ ports=\d+ tours=\d+/);
+  assert.match(formatShareProfileDiagnostic(fixture), /^sharing=accepted:/);
+  assert.match(formatShareProfileDiagnostic(fixture), /days=\d+ transport=\d+ ports=\d+ tours=\d+/);
 
-  const absent = structuredClone(canonical);
+  const absent = structuredClone(fixture);
   delete absent.sharing;
   assert.equal(diagnoseShareProfile(absent).status, "absent");
   assert.match(formatShareProfileDiagnostic(absent), /sharing=disabled/i);
   assert.match(formatShareProfileDiagnostic(absent), /no details are approved/i);
 
-  const invalid = structuredClone(canonical);
+  const invalid = structuredClone(fixture);
   invalid.sharing.days[0].summary_typo = invalid.sharing.days[0].summary;
   delete invalid.sharing.days[0].summary;
   const invalidDiagnostic = diagnoseShareProfile(invalid);
@@ -99,14 +104,15 @@ test("sharing-profile diagnostics distinguish valid, absent, and invalid input",
   assert.deepEqual(toShareSafeTrip(invalid).days, []);
 });
 
-test("packing is generated only for fictional travelers with new stable IDs", async () => {
+test("packing is generated only for canonical travelers with stable IDs", async () => {
   const trip = JSON.parse(await read("data/northstar-isles-trip.json"));
   const travelers = trip.travelers.map(({ display_name }) => display_name);
   const source = await read("data/northstar-isles-packing.md");
   const packing = JSON.parse(await read("app/data/packing.json"));
   assert.deepEqual(Object.keys(packing), travelers);
   for (const traveler of travelers) {
-    assert.match(source, new RegExp(`## ${traveler.replace(" ", "\\s")}`));
+    const escapedTraveler = traveler.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    assert.match(source, new RegExp(`## ${escapedTraveler}`));
     assert.ok(packing[traveler].length >= 1);
     for (const row of packing[traveler]) {
       assert.equal(row.person, traveler);
@@ -118,7 +124,7 @@ test("packing is generated only for fictional travelers with new stable IDs", as
 test("state assignment policy accepts only canonical traveler identities", async () => {
   const trip = JSON.parse(await read("data/northstar-isles-trip.json"));
   const travelers = trip.travelers.map(({ display_name }) => display_name);
-  const profileSlots = trip.connectivity.profiles.map(({ slot }) => slot);
+  const profileSlots = (trip.connectivity?.profiles || []).map(({ slot }) => slot);
   for (const [index, slot] of profileSlots.entries()) {
     assert.equal(
       validDemoAssignment(
@@ -148,14 +154,22 @@ test("state assignment policy accepts only canonical traveler identities", async
 test("sensitive features contain only generalized guidance and inert examples", async () => {
   const trip = JSON.parse(await read("data/northstar-isles-trip.json"));
   const travelers = trip.travelers.map(({ display_name }) => display_name);
-  assert.ok(trip.safety_accessibility);
   assert.equal("health" in trip, false);
-  assert.match(trip.safety_accessibility.public_emergency_guidance, /public emergency service/i);
-  for (const profile of trip.safety_accessibility.traveler_preferences) {
+  const safety = trip.safety_accessibility || {};
+  for (const profile of safety.traveler_preferences || []) {
     assert.ok(travelers.includes(profile.traveler));
-    assert.ok(profile.items.length >= 2);
+    assert.ok(Array.isArray(profile.items));
+    assert.ok(profile.items.every((item) => typeof item === "string"));
   }
   if (trip.identity.sample_data) {
+    assert.ok(trip.safety_accessibility);
+    assert.match(
+      safety.public_emergency_guidance,
+      /public emergency service/i,
+    );
+    for (const profile of safety.traveler_preferences) {
+      assert.ok(profile.items.length >= 2);
+    }
     for (const group of trip.demo_vault_groups) {
       for (const item of group.items) {
         if (/booking|flight|rail|vessel|cabin/i.test(item.label)) {
@@ -165,12 +179,15 @@ test("sensitive features contain only generalized guidance and inert examples", 
         }
       }
     }
-    for (const record of trip.connectivity.profiles) {
+    for (const record of trip.connectivity.profiles || []) {
       assert.match(record.demo_identifier, /^DEMO-/);
       assert.deepEqual(Object.keys(record).sort(), ["demo_identifier", "phone", "slot"]);
     }
+    assert.match(
+      trip.connectivity.demo_notice,
+      /No QR code, ICCID, activation token/i,
+    );
   }
-  assert.match(trip.connectivity.demo_notice, /No QR code, ICCID, activation token/i);
 });
 
 test("safe contacts and booking formats hold across canonical data", async () => {

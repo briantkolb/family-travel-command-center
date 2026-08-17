@@ -98,6 +98,112 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function asRecord(value: unknown): LooseRecord {
+  return isObject(value) ? (value as LooseRecord) : {};
+}
+
+function asArray<T = unknown>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function asRecordArray(value: unknown): LooseRecord[] {
+  return asArray(value).filter(isObject) as LooseRecord[];
+}
+
+function asStringArray(value: unknown): string[] {
+  return asArray(value).filter(
+    (item): item is string => typeof item === "string" && Boolean(item.trim()),
+  );
+}
+
+function hasText(value: unknown): value is string {
+  return typeof value === "string" && Boolean(value.trim());
+}
+
+function text(value: unknown, fallback = "") {
+  return hasText(value) ? value : fallback;
+}
+
+function normalizePrivateTrip(value: unknown): TripData {
+  const trip = asRecord(value);
+  const cruise = asRecord(trip.cruise);
+  const connectivity = asRecord(trip.connectivity);
+  const safety = asRecord(trip.safety_accessibility);
+  const preparationGroups = Object.fromEntries(
+    Object.entries(asRecord(trip.preparation_groups)).map(([group, items]) => [
+      group,
+      asStringArray(items),
+    ]),
+  );
+  return {
+    identity: asRecord(trip.identity),
+    travelers: asRecordArray(trip.travelers),
+    airports: Object.fromEntries(
+      Object.entries(asRecord(trip.airports)).filter(
+        ([, label]) => typeof label === "string",
+      ),
+    ) as Record<string, string>,
+    onward_steps: Object.fromEntries(
+      Object.entries(asRecord(trip.onward_steps)).filter(
+        ([, step]) => typeof step === "string",
+      ),
+    ) as Record<string, string>,
+    flights: asRecordArray(trip.flights),
+    ground_transport: asRecordArray(trip.ground_transport),
+    lodging: asRecordArray(trip.lodging),
+    cruise: {
+      ...cruise,
+      staterooms: asRecordArray(cruise.staterooms),
+      ports: asRecordArray(cruise.ports),
+      dining: asRecordArray(cruise.dining),
+    },
+    tours: asRecordArray(trip.tours),
+    connectivity: {
+      ...connectivity,
+      profiles: asRecordArray(connectivity.profiles),
+      instructions: asStringArray(connectivity.instructions),
+    },
+    safety_accessibility: {
+      ...safety,
+      traveler_preferences: asRecordArray(safety.traveler_preferences).map(
+        (profile) => ({ ...profile, items: asStringArray(profile.items) }),
+      ),
+      general_guidance: asStringArray(safety.general_guidance),
+    },
+    pending_updates: asRecordArray(trip.pending_updates),
+    daily_plan: asRecordArray(trip.daily_plan).map((day) => ({
+      ...day,
+      events: asArray(day.events),
+      flights: asArray(day.flights),
+    })),
+    preparation_groups: preparationGroups,
+    demo_vault_groups: asRecordArray(trip.demo_vault_groups)
+      .map((group) => ({
+        ...group,
+        items: asRecordArray(group.items).filter(
+          (item) => hasText(item.label) && hasText(item.value),
+        ),
+      }))
+      .filter((group) => group.items.length > 0),
+  };
+}
+
+function normalizePacking(value: unknown): Record<PackingPerson, PackingItem[]> {
+  return Object.fromEntries(
+    Object.entries(asRecord(value)).map(([person, items]) => [
+      person,
+      asRecordArray(items) as PackingItem[],
+    ]),
+  );
+}
+
+function normalizePrivateData(trip: unknown, packing: unknown): PrivateData {
+  return {
+    trip: normalizePrivateTrip(trip),
+    packing: normalizePacking(packing),
+  };
+}
+
 function readPrivateDataCache(): PrivateData | null {
   try {
     const cached = JSON.parse(localStorage.getItem(PRIVATE_DATA_CACHE_KEY) || "null") as unknown;
@@ -109,10 +215,7 @@ function readPrivateDataCache(): PrivateData | null {
     ) {
       return null;
     }
-    return {
-      trip: cached.trip as TripData,
-      packing: cached.packing as Record<PackingPerson, PackingItem[]>,
-    };
+    return normalizePrivateData(cached.trip, cached.packing);
   } catch {
     return null;
   }
@@ -138,15 +241,18 @@ function slug(value: string) {
 function mapUrl(value: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`;
 }
-function readableDate(value: string) {
+function readableDate(value: unknown) {
+  if (!hasText(value)) return "Date pending";
+  const date = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
-  }).format(new Date(`${value}T12:00:00`));
+  }).format(date);
 }
-function clock(value?: string) {
-  if (!value) return "Pending live update";
+function clock(value?: unknown) {
+  if (!hasText(value)) return "Pending live update";
   const match = value.match(/T(\d{2}):(\d{2})/);
   if (!match) return value;
   const hours = Number(match[1]);
@@ -431,29 +537,34 @@ function FlightCard({
   shareMode: boolean;
   compact?: boolean;
 }) {
+  const route = asRecord(flight.route);
+  const from = text(route.from, "Origin pending");
+  const to = text(route.to, "Destination pending");
   const number =
-    "flight_number" in flight
-      ? flight.flight_number
-      : `${flight.marketed_flight_number} / ${flight.operated_flight_number}`;
-  const airline = flight.marketing_airline
-    ? `${flight.marketing_airline} marketed • ${flight.operating_airline} operated`
-    : flight.operating_airline;
+    text(flight.flight_number) ||
+    [flight.marketed_flight_number, flight.operated_flight_number]
+      .filter(hasText)
+      .join(" / ") ||
+    "Service number pending";
+  const airline = hasText(flight.marketing_airline)
+    ? `${flight.marketing_airline} marketed${hasText(flight.operating_airline) ? ` • ${flight.operating_airline} operated` : ""}`
+    : text(flight.operating_airline, "Carrier pending");
   const seats =
     typeof flight.seats === "string"
       ? flight.seats
-      : Object.entries(flight.seats || {})
+      : Object.entries(asRecord(flight.seats))
           .map(
             ([name, seat]) =>
-              `${name[0].toUpperCase()}${name.slice(1)} ${seat}`,
+              `${name ? `${name[0].toUpperCase()}${name.slice(1)}` : "Traveler"} ${seat}`,
           )
           .join(" • ");
-  const onward = onwardSteps[`${flight.route.from}-${flight.route.to}`];
+  const onward = onwardSteps[`${from}-${to}`];
   return (
     <article className={`flight-card ${compact ? "compact" : ""}`}>
       <div className="route-head">
         <span>{readableDate(flight.date)}</span>
         <strong>
-          {flight.route.from} → {flight.route.to}
+          {from} → {to}
         </strong>
         <b>{number}</b>
       </div>
@@ -462,7 +573,7 @@ function FlightCard({
           <small>Depart</small>
           <strong>{clock(flight.departure_local)}</strong>
           <span>
-            {airports[flight.route.from]} ({flight.route.from})
+            {airports[from] || "Location pending"} ({from})
           </span>
           <em>
             {"departure_terminal" in flight && flight.departure_terminal
@@ -482,7 +593,7 @@ function FlightCard({
           <small>Arrive</small>
           <strong>{clock(flight.arrival_local)}</strong>
           <span>
-            {airports[flight.route.to]} ({flight.route.to})
+            {airports[to] || "Location pending"} ({to})
           </span>
           <em>
             {"arrival_terminal" in flight && flight.arrival_terminal
@@ -504,29 +615,31 @@ function FlightCard({
             {airline} • {number}
           </dd>
         </div>
-        <div>
-          <dt>Duration</dt>
-          <dd>{flight.duration}</dd>
-        </div>
-        {!shareMode && "aircraft" in flight && (
+        {hasText(flight.duration) && (
+          <div>
+            <dt>Duration</dt>
+            <dd>{flight.duration}</dd>
+          </div>
+        )}
+        {!shareMode && hasText(flight.aircraft) && (
           <div>
             <dt>Aircraft</dt>
             <dd>{flight.aircraft}</dd>
           </div>
         )}
-        {!shareMode && "fare" in flight && (
+        {!shareMode && hasText(flight.fare) && (
           <div>
             <dt>Fare / class</dt>
             <dd>{flight.fare}</dd>
           </div>
         )}
-        {!shareMode && "seats" in flight && (
+        {!shareMode && Boolean(seats) && (
           <div className="private-field">
             <dt>Seats</dt>
             <dd>{seats}</dd>
           </div>
         )}
-        {!shareMode && "confirmation" in flight && (
+        {!shareMode && hasText(flight.confirmation) && (
           <div className="private-field">
             <dt>Confirmation</dt>
             <dd>{flight.confirmation}</dd>
@@ -539,12 +652,12 @@ function FlightCard({
           </div>
         )}
       </dl>
-      {!compact && "baggage_note" in flight && (
+      {!compact && hasText(flight.baggage_note) && (
         <p className="notice">
           <strong>Baggage:</strong> {flight.baggage_note}
         </p>
       )}
-      {!compact && "e_tickets" in flight && (
+      {!compact && isObject(flight.e_tickets) && (
         <div className="ticket-list private-field">
           {Object.entries(flight.e_tickets).map(([name, ticket]) => (
             <span key={name}>
@@ -556,10 +669,10 @@ function FlightCard({
       )}
       {!compact && (
         <div className="note-list">
-          {flight.notes?.map((note: string) => (
+          {asStringArray(flight.notes).map((note) => (
             <span key={note}>{note}</span>
           ))}
-          {"critical_note" in flight && <span>{flight.critical_note}</span>}
+          {hasText(flight.critical_note) && <span>{flight.critical_note}</span>}
         </div>
       )}
     </article>
@@ -581,9 +694,14 @@ function DayCard({
   shareMode: boolean;
   firstDay: boolean;
 }) {
+  const events = asArray<[string, string, string?]>(day.events);
+  const flightIndexes = asArray<number>(day.flights).filter(
+    (index) => Number.isInteger(index) && Boolean(flights[index]),
+  );
+  const tone = hasText(day.tone) ? slug(day.tone) : "";
   return (
     <details
-      className={`day-card tone-${day.tone}`}
+      className={`day-card${tone ? ` tone-${tone}` : ""}`}
       open={firstDay}
     >
       <summary>
@@ -602,7 +720,7 @@ function DayCard({
         <span className="expand">+</span>
       </summary>
       <div className="timeline">
-        {day.events.map(([time, title, detail]: [string, string, string?]) => (
+        {events.map(([time, title, detail]) => (
           <div className="event" key={`${time}-${title}`}>
             <time>{time}</time>
             <i></i>
@@ -616,8 +734,7 @@ function DayCard({
             </div>
           </div>
         ))}
-        {"flights" in day &&
-          day.flights?.map((index: number) => (
+        {flightIndexes.map((index) => (
             <FlightCard
               key={index}
               flight={flights[index]}
@@ -627,10 +744,15 @@ function DayCard({
               compact
             />
           ))}
-        <div className="know">
-          <strong>What to know</strong>
-          <p>{day.know}</p>
-        </div>
+        {!events.length && !flightIndexes.length && (
+          <div className="empty-state">No timed events supplied for this day.</div>
+        )}
+        {hasText(day.know) && (
+          <div className="know">
+            <strong>What to know</strong>
+            <p>{day.know}</p>
+          </div>
+        )}
       </div>
     </details>
   );
@@ -809,10 +931,10 @@ export default function Home() {
           if (!tripResponse.ok || !packingResponse.ok) {
             throw new Error("Private trip data unavailable");
           }
-          const data: PrivateData = {
-            trip: (await tripResponse.json()) as TripData,
-            packing: (await packingResponse.json()) as Record<PackingPerson, PackingItem[]>,
-          };
+          const data = normalizePrivateData(
+            await tripResponse.json(),
+            await packingResponse.json(),
+          );
           writePrivateDataCache(data);
           if (active) setBootstrap({ mode: "private-ready", data });
         })
@@ -880,6 +1002,8 @@ function PrivateHome({
   const shareMode = false;
   const shared = useSharedState();
   const sampleData = Boolean(trip.identity.sample_data);
+  const heroTitle = asStringArray(trip.identity.hero_title);
+  const tripDates = asRecord(trip.identity.trip_dates);
 
   const travelers = trip.travelers;
   const travelerNames = travelers.map(
@@ -889,6 +1013,10 @@ function PrivateHome({
   const onwardSteps = trip.onward_steps;
   const dailyPlan = trip.daily_plan;
   const prepGroups = trip.preparation_groups;
+  const selectedPacking = useMemo(
+    () => packing[person] || [],
+    [packing, person],
+  );
 
   useEffect(() => {
     const manifest = document.createElement("link");
@@ -933,10 +1061,12 @@ function PrivateHome({
   const todayPlan =
     dailyPlan.find((day) => day.date === todayIso) ||
     dailyPlan.find((day) => day.date >= todayIso) ||
-    dailyPlan.at(-1)!;
+    dailyPlan.at(-1) ||
+    { date: "", place: "Trip overview", events: [] };
+  const todayEvents = asArray<[string, string, string?]>(todayPlan.events);
   const packRows = useMemo(
     () =>
-      packing[person].filter((item) => {
+      selectedPacking.filter((item) => {
         const checked = Boolean(shared.state.checks[item.id]);
         const matchesState =
           packFilter === "all" ||
@@ -950,15 +1080,15 @@ function PrivateHome({
             ))
         );
       }),
-    [packing, person, packFilter, query, shared.state.checks],
+    [selectedPacking, packFilter, query, shared.state.checks],
   );
   const groupedPack = Object.groupBy(packRows, (item) => item.category);
-  const completed = packing[person].filter(
+  const completed = selectedPacking.filter(
     (item) => shared.state.checks[item.id],
   ).length;
 
   return (
-    <main>
+    <main data-testid="private-trip-view">
       <header className="topbar">
         <button className="brand" onClick={() => go("today")}>
           <span>FT</span>
@@ -1005,13 +1135,21 @@ function PrivateHome({
         {tab === "today" && (
           <section>
             <div className="hero">
-              <span className="eyebrow">{trip.identity.trip_dates.label}</span>
+              <span className="eyebrow">
+                {text(tripDates.label, "Trip dates pending")}
+              </span>
               <h1>
-                {trip.identity.hero_title[0]}
-                <br />
-                {trip.identity.hero_title[1]}
+                {heroTitle.length ? heroTitle[0] : trip.identity.trip_name}
+                {heroTitle.length > 1 && (
+                  <>
+                    <br />
+                    {heroTitle[1]}
+                  </>
+                )}
               </h1>
-              <p>{trip.identity.hero_description}</p>
+              {hasText(trip.identity.hero_description) && (
+                <p>{trip.identity.hero_description}</p>
+              )}
               <div className="hero-actions">
                 <button
                   className="primary-button"
@@ -1037,11 +1175,17 @@ function PrivateHome({
                 <h2>
                   {readableDate(todayPlan.date)} — {todayPlan.place}
                 </h2>
-                <div className="next-event">
-                  <b>{todayPlan.events[0][0]}</b>
-                  <strong>{todayPlan.events[0][1]}</strong>
-                  <p>{todayPlan.events[0][2]}</p>
-                </div>
+                {todayEvents.length ? (
+                  <div className="next-event">
+                    <b>{todayEvents[0][0]}</b>
+                    <strong>{todayEvents[0][1]}</strong>
+                    {todayEvents[0][2] && <p>{todayEvents[0][2]}</p>}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    No timed events supplied for this day.
+                  </div>
+                )}
                 <button className="text-button" onClick={() => go("itinerary")}>
                   See the complete day →
                 </button>
@@ -1101,9 +1245,13 @@ function PrivateHome({
         {tab === "travel" && (
           <section className="page">
             <PageIntro
-               kicker={`${trip.flights.length} fictional flight legs`}
+              kicker={`${trip.flights.length} ${sampleData ? "fictional " : ""}flight legs`}
               title="Flights & transportation"
-               text="Fictional terminal snapshots, seats, transport records, and onward steps in one reference view."
+              text={
+                sampleData
+                  ? "Fictional terminal snapshots, seats, transport records, and onward steps in one reference view."
+                  : "Known flight and transport details, pending fields, and onward steps in one private reference view."
+              }
             />
             <div className="stack">
               {trip.flights.map((flight) => (
@@ -1128,13 +1276,13 @@ function PrivateHome({
                   key={`${record.date}-${record.route}`}
                 >
                   <span className="status-badge">
-                    {record.status.replaceAll("_", " ")}
+                    {text(record.status, "Pending").replaceAll("_", " ")}
                   </span>
                   <h2>{record.route}</h2>
                   <p>
                     <strong>{readableDate(record.date)}</strong>
                   </p>
-                  {"service" in record && (
+                  {hasText(record.service) && (
                     <dl className="detail-grid">
                       <div>
                         <dt>Service</dt>
@@ -1147,7 +1295,8 @@ function PrivateHome({
                           {clock(record.arrival_local)}
                         </dd>
                       </div>
-                      {!shareMode && "pnr" in record && (
+                      {!shareMode &&
+                        (hasText(record.pnr) || hasText(record.coach)) && (
                         <div>
                           <dt>PNR / coach</dt>
                           <dd>
@@ -1155,7 +1304,7 @@ function PrivateHome({
                           </dd>
                         </div>
                       )}
-                      {!shareMode && "seats" in record && (
+                      {!shareMode && isObject(record.seats) && (
                         <div>
                           <dt>Seats</dt>
                           <dd>
@@ -1165,7 +1314,7 @@ function PrivateHome({
                           </dd>
                         </div>
                       )}
-                      {!shareMode && "boarding_codes" in record && (
+                      {!shareMode && isObject(record.boarding_codes) && (
                         <div>
                           <dt>Boarding codes</dt>
                           <dd>
@@ -1175,7 +1324,10 @@ function PrivateHome({
                           </dd>
                         </div>
                       )}
-                      {!shareMode && "fare" in record && (
+                      {!shareMode &&
+                        [record.fare, record.class, record.price_total].some(
+                          hasText,
+                        ) && (
                         <div>
                           <dt>Fare</dt>
                           <dd>
@@ -1226,150 +1378,200 @@ function PrivateHome({
               text="Addresses, contacts, entry steps, Wi-Fi, checkout, luggage, and direct actions."
             />
             <div className="stack">
-              {trip.lodging.map((stay) => (
-                <article className="lodging-card" key={stay.city}>
-                  <div className="lodging-head">
-                    <div>
-                      <span className="kicker">{stay.city}</span>
-                      <h2>{stay.display_name}</h2>
-                      <p>{stay.address}</p>
-                    </div>
-                    <a
-                      className="map-button"
-                      href={mapUrl(stay.address)}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Map
-                    </a>
-                  </div>
-                  <div className="action-row">
-                    <a href={`tel:${stay.host_phone.replace(/\s/g, "")}`}>
-                      Call {stay.host}
-                    </a>
-                    <a
-                      href={`https://wa.me/${stay.host_phone.replace(/[^0-9]/g, "")}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      WhatsApp
-                    </a>
-                    <button
-                      onClick={() =>
-                        navigator.clipboard.writeText(stay.address)
-                      }
-                    >
-                      Copy address
-                    </button>
-                  </div>
-                  <dl className="detail-grid">
-                    <div>
-                      <dt>Confirmation</dt>
-                      <dd>{stay.confirmation}</dd>
-                    </div>
-                    <div>
-                      <dt>Guests</dt>
-                      <dd>{stay.guests}</dd>
-                    </div>
-                    <div>
-                      <dt>Check-in</dt>
-                      <dd>
-                        {clock(stay.check_in)} •{" "}
-                        {readableDate(stay.check_in.slice(0, 10))}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Check-out</dt>
-                      <dd>
-                        {clock(stay.check_out)} •{" "}
-                        {readableDate(stay.check_out.slice(0, 10))}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Host</dt>
-                      <dd>
-                        {stay.host} • {stay.host_phone}
-                      </dd>
-                    </div>
-                  </dl>
-                  {Array.isArray(stay.check_in_process) && (
-                    <div className="instruction-box">
-                      <h3>Demonstration check-in sequence</h3>
-                      <ol>
-                        {stay.check_in_process.map((step: string) => (
-                          <li key={step}>{step}</li>
-                        ))}
-                      </ol>
-                    </div>
-                  )}
-                  {stay.private_access && (
-                    <div className="secret-grid">
-                      {Object.entries(stay.private_access).map(([label, value]) => (
-                        <Secret
-                          key={label}
-                          label={label.replaceAll("_", " ")}
-                          value={String(value)}
-                          shareMode={shareMode}
-                        />
-                      ))}
-                      {stay.wifi &&
-                        Object.entries(stay.wifi).map(([label, value]) => (
-                          <Secret
-                            key={label}
-                            label={`Wi-Fi ${label}`}
-                            value={String(value)}
-                            shareMode={shareMode}
-                          />
-                        ))}
-                    </div>
-                  )}
-                  {(stay.manager_contact_plan || stay.possible_early_check_in) && (
-                    <div className="notice">
-                      <strong>Demonstration check-in:</strong>{" "}
-                      {stay.manager_contact_plan} {stay.possible_early_check_in}
-                    </div>
-                  )}
-                  <p>
-                    <strong>Luggage:</strong> {stay.luggage_plan}
-                  </p>
-                  <div className="notice">
-                    <strong>Equipment note:</strong> {stay.power_note}
-                  </div>
-                  <div className="instruction-columns">
-                    <div>
-                      <h3>Demonstration luggage options</h3>
-                      {stay.nearby_luggage_storage_addresses.map(
-                        (address: string) => (
-                          <a
-                            key={address}
-                            href={mapUrl(address)}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {address}
-                          </a>
-                        ),
+              {trip.lodging.map((stay, index) => {
+                const address = text(stay.address);
+                const host = text(stay.host);
+                const hostPhone = text(stay.host_phone);
+                const checkInSteps = asStringArray(stay.check_in_process);
+                const luggageOptions = asStringArray(
+                  stay.nearby_luggage_storage_addresses,
+                );
+                const checkoutSteps = asStringArray(stay.checkout_steps);
+                const pending = Array.isArray(stay.pending)
+                  ? asStringArray(stay.pending)
+                  : hasText(stay.pending)
+                    ? [stay.pending]
+                    : [];
+                return (
+                  <article
+                    className="lodging-card"
+                    key={`${text(stay.city, "lodging")}-${index}`}
+                  >
+                    <div className="lodging-head">
+                      <div>
+                        <span className="kicker">
+                          {text(stay.city, "Location pending")}
+                        </span>
+                        <h2>{text(stay.display_name, "Lodging details pending")}</h2>
+                        {address && <p>{address}</p>}
+                      </div>
+                      {address && (
+                        <a
+                          className="map-button"
+                          href={mapUrl(address)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Map
+                        </a>
                       )}
                     </div>
-                    <div>
-                      <h3>Checkout</h3>
-                      {stay.checkout_steps.map((step: string) => (
-                        <span key={step}>{step}</span>
-                      ))}
-                    </div>
-                  </div>
-                  {stay.pending && (
-                    <div className="pending-list">
-                      {(Array.isArray(stay.pending)
-                        ? stay.pending
-                        : [stay.pending]
-                      ).map((item: string) => (
-                        <span key={item}>Pending live update: {item}</span>
-                      ))}
-                    </div>
-                  )}
-                </article>
-              ))}
+                    {(hostPhone || address) && (
+                      <div className="action-row">
+                        {hostPhone && (
+                          <>
+                            <a href={`tel:${hostPhone.replace(/\s/g, "")}`}>
+                              Call {host || "lodging contact"}
+                            </a>
+                            <a
+                              href={`https://wa.me/${hostPhone.replace(/[^0-9]/g, "")}`}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              WhatsApp
+                            </a>
+                          </>
+                        )}
+                        {address && (
+                          <button
+                            onClick={() => navigator.clipboard.writeText(address)}
+                          >
+                            Copy address
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <dl className="detail-grid">
+                      {hasText(stay.confirmation) && (
+                        <div>
+                          <dt>Confirmation</dt>
+                          <dd>{stay.confirmation}</dd>
+                        </div>
+                      )}
+                      {hasText(stay.guests) && (
+                        <div>
+                          <dt>Guests</dt>
+                          <dd>{stay.guests}</dd>
+                        </div>
+                      )}
+                      {hasText(stay.check_in) && (
+                        <div>
+                          <dt>Check-in</dt>
+                          <dd>
+                            {clock(stay.check_in)} •{" "}
+                            {readableDate(stay.check_in.slice(0, 10))}
+                          </dd>
+                        </div>
+                      )}
+                      {hasText(stay.check_out) && (
+                        <div>
+                          <dt>Check-out</dt>
+                          <dd>
+                            {clock(stay.check_out)} •{" "}
+                            {readableDate(stay.check_out.slice(0, 10))}
+                          </dd>
+                        </div>
+                      )}
+                      {(host || hostPhone) && (
+                        <div>
+                          <dt>Host</dt>
+                          <dd>{[host, hostPhone].filter(Boolean).join(" • ")}</dd>
+                        </div>
+                      )}
+                    </dl>
+                    {checkInSteps.length > 0 && (
+                      <div className="instruction-box">
+                        <h3>{sampleData ? "Demonstration check-in sequence" : "Check-in sequence"}</h3>
+                        <ol>
+                          {checkInSteps.map((step) => (
+                            <li key={step}>{step}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                    {(isObject(stay.private_access) || isObject(stay.wifi)) && (
+                      <div className="secret-grid">
+                        {Object.entries(asRecord(stay.private_access)).map(
+                          ([label, value]) => (
+                            <Secret
+                              key={label}
+                              label={label.replaceAll("_", " ")}
+                              value={String(value)}
+                              shareMode={shareMode}
+                            />
+                          ),
+                        )}
+                        {Object.entries(asRecord(stay.wifi)).map(
+                          ([label, value]) => (
+                            <Secret
+                              key={label}
+                              label={`Wi-Fi ${label}`}
+                              value={String(value)}
+                              shareMode={shareMode}
+                            />
+                          ),
+                        )}
+                      </div>
+                    )}
+                    {(hasText(stay.manager_contact_plan) ||
+                      hasText(stay.possible_early_check_in)) && (
+                      <div className="notice">
+                        <strong>{sampleData ? "Demonstration check-in:" : "Check-in:"}</strong>{" "}
+                        {[stay.manager_contact_plan, stay.possible_early_check_in]
+                          .filter(hasText)
+                          .join(" ")}
+                      </div>
+                    )}
+                    {hasText(stay.luggage_plan) && (
+                      <p>
+                        <strong>Luggage:</strong> {stay.luggage_plan}
+                      </p>
+                    )}
+                    {hasText(stay.power_note) && (
+                      <div className="notice">
+                        <strong>Equipment note:</strong> {stay.power_note}
+                      </div>
+                    )}
+                    {(luggageOptions.length > 0 || checkoutSteps.length > 0) && (
+                      <div className="instruction-columns">
+                        {luggageOptions.length > 0 && (
+                          <div>
+                            <h3>{sampleData ? "Demonstration luggage options" : "Luggage options"}</h3>
+                            {luggageOptions.map((item) => (
+                              <a
+                                key={item}
+                                href={mapUrl(item)}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {item}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                        {checkoutSteps.length > 0 && (
+                          <div>
+                            <h3>Checkout</h3>
+                            {checkoutSteps.map((step) => (
+                              <span key={step}>{step}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {pending.length > 0 && (
+                      <div className="pending-list">
+                        {pending.map((item) => (
+                          <span key={item}>Pending live update: {item}</span>
+                        ))}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+              {!trip.lodging.length && (
+                <div className="empty-state">No lodging records added.</div>
+              )}
             </div>
           </section>
         )}
@@ -1377,28 +1579,49 @@ function PrivateHome({
         {tab === "cruise" && (
           <section className="page">
             <PageIntro
-               kicker={`${trip.cruise.ship} • ${trip.cruise.dates}`}
-               title="Coastal vessel command center"
-               text="Fictional reservations, cabins, port schedule, dining, and a general safety reminder."
+              kicker={`${text(trip.cruise.ship, "No vessel added")}${hasText(trip.cruise.dates) ? ` • ${trip.cruise.dates}` : ""}`}
+              title="Coastal vessel command center"
+              text={
+                sampleData
+                  ? "Fictional reservations, cabins, port schedule, dining, and a general safety reminder."
+                  : "Known vessel, room, port, dining, and safety details for this private trip."
+              }
             />
             <div className="room-grid">
-              {trip.cruise.staterooms.map((room: LooseRecord) => (
-                <article className="room-card" key={room.reservation}>
+              {trip.cruise.staterooms.map((room: LooseRecord, index: number) => (
+                <article
+                  className="room-card"
+                  key={`${text(room.reservation, "room")}-${index}`}
+                >
                   <span>
-                    Deck {room.deck} • {room.location}
+                    {[hasText(room.deck) ? `Deck ${room.deck}` : "", room.location]
+                      .filter(hasText)
+                      .join(" • ") || "Room location pending"}
                   </span>
-                  <h2>Stateroom {room.stateroom}</h2>
-                  <p>{room.category}</p>
-                  <Secret
-                    label="Reservation"
-                    value={room.reservation}
-                    shareMode={shareMode}
-                  />
-                  <strong>{room.assigned_travelers.join(" + ")}</strong>
+                  <h2>
+                    {hasText(room.stateroom)
+                      ? `Stateroom ${room.stateroom}`
+                      : "Stateroom details pending"}
+                  </h2>
+                  {hasText(room.category) && <p>{room.category}</p>}
+                  {hasText(room.reservation) && (
+                    <Secret
+                      label="Reservation"
+                      value={room.reservation}
+                      shareMode={shareMode}
+                    />
+                  )}
+                  {asStringArray(room.assigned_travelers).length > 0 && (
+                    <strong>
+                      {asStringArray(room.assigned_travelers).join(" + ")}
+                    </strong>
+                  )}
                 </article>
               ))}
             </div>
-            <p className="notice">{trip.cruise.sleeping_note}</p>
+            {hasText(trip.cruise.sleeping_note) && (
+              <p className="notice">{trip.cruise.sleeping_note}</p>
+            )}
             <div className="ports-table">
               {trip.cruise.ports.map((port: LooseRecord) => (
                 <div key={port.date}>
@@ -1423,12 +1646,22 @@ function PrivateHome({
                   </p>
                 </article>
               ))}
-              <article className="card warning-card">
-                <span className="kicker">Safety rule</span>
-                <h2>Posted ship time controls</h2>
-                <p>{trip.cruise.safety_rule}</p>
-              </article>
+              {hasText(trip.cruise.safety_rule) && (
+                <article className="card warning-card">
+                  <span className="kicker">Safety rule</span>
+                  <h2>Posted ship time controls</h2>
+                  <p>{trip.cruise.safety_rule}</p>
+                </article>
+              )}
             </div>
+            {!trip.cruise.staterooms.length &&
+              !trip.cruise.ports.length &&
+              !trip.cruise.dining.length &&
+              !hasText(trip.cruise.safety_rule) && (
+                <div className="empty-state">
+                  No cruise or vessel details added for this trip.
+                </div>
+              )}
           </section>
         )}
 
@@ -1444,11 +1677,9 @@ function PrivateHome({
                 <article className="tour-card" key={tour.name}>
                   <div>
                     <span
-                      className={`status-badge ${"status" in tour ? "active" : ""}`}
+                      className={`status-badge ${hasText(tour.status) ? "active" : ""}`}
                     >
-                      {"status" in tour
-                        ? tour.status.replaceAll("_", " ")
-                        : "Confirmed"}
+                      {text(tour.status, "Status pending").replaceAll("_", " ")}
                     </span>
                     <b>{readableDate(tour.date)}</b>
                   </div>
@@ -1478,31 +1709,38 @@ function PrivateHome({
                       <strong>Host / contact:</strong> {tour.contact}
                     </p>
                   )}
-                  {"booking_reference" in tour && (
+                  {hasText(tour.booking_reference) && (
                     <Secret
                       label="Booking reference"
                       value={tour.booking_reference}
                       shareMode={shareMode}
                     />
                   )}
-                  {"confirmation" in tour && (
+                  {hasText(tour.confirmation) && (
                     <Secret
                       label="Confirmation"
                       value={tour.confirmation}
                       shareMode={shareMode}
                     />
                   )}
-                  {"pin" in tour && (
+                  {hasText(tour.pin) && (
                     <Secret
                       label="Private PIN"
                       value={tour.pin}
                       shareMode={shareMode}
                     />
                   )}
-                  <p>
-                    <strong>Meeting:</strong>{" "}
-                    {tour.meeting || tour.meeting_return || tour.ticket_pickup}
-                  </p>
+                  {[tour.meeting, tour.meeting_return, tour.ticket_pickup].some(
+                    hasText,
+                  ) && (
+                    <p>
+                      <strong>Meeting:</strong>{" "}
+                      {text(
+                        tour.meeting,
+                        text(tour.meeting_return, text(tour.ticket_pickup)),
+                      )}
+                    </p>
+                  )}
                   {"location_details" in tour && (
                     <p>
                       <strong>Find it:</strong> {tour.location_details}
@@ -1533,7 +1771,9 @@ function PrivateHome({
                       <strong>Pier transfer:</strong> {tour.pier_transfer}
                     </p>
                   )}
-                  {"coordinates" in tour && (
+                  {isObject(tour.coordinates) &&
+                    tour.coordinates.lat !== undefined &&
+                    tour.coordinates.lng !== undefined && (
                     <a
                       className="map-button"
                       href={mapUrl(
@@ -1545,9 +1785,9 @@ function PrivateHome({
                       Open meeting map
                     </a>
                   )}
-                  {("phone" in tour || "map_address" in tour) && (
+                  {(hasText(tour.phone) || hasText(tour.map_address)) && (
                     <div className="action-row private-field">
-                      {"phone" in tour && (
+                      {hasText(tour.phone) && (
                         <>
                           <a href={`tel:${tour.phone.replace(/\s/g, "")}`}>
                             Call {tour.contact || tour.provider}
@@ -1561,7 +1801,7 @@ function PrivateHome({
                           </button>
                         </>
                       )}
-                      {"map_address" in tour && (
+                      {hasText(tour.map_address) && (
                         <a
                           href={mapUrl(tour.map_address)}
                           target="_blank"
@@ -1572,10 +1812,10 @@ function PrivateHome({
                       )}
                     </div>
                   )}
-                  {"bring" in tour && (
+                  {asStringArray(tour.bring).length > 0 && (
                     <div className="tour-bring">
                       <strong>Bring</strong>
-                      {tour.bring.map((item: string) => (
+                      {asStringArray(tour.bring).map((item) => (
                         <span key={item}>{item}</span>
                       ))}
                     </div>
@@ -1612,6 +1852,9 @@ function PrivateHome({
                   )}
                 </article>
               ))}
+              {!trip.tours.length && (
+                <div className="empty-state">No activities added.</div>
+              )}
             </div>
           </section>
         )}
@@ -1631,16 +1874,16 @@ function PrivateHome({
                   onClick={() => setPerson(name)}
                 >
                   {name}
-                  <span>{packing[name].length}</span>
+                  <span>{packing[name]?.length || 0}</span>
                 </button>
               ))}
             </div>
             <div className="packing-toolbar">
               <div>
                 <strong>
-                  {completed}/{packing[person].length} complete
+                  {completed}/{selectedPacking.length} complete
                 </strong>
-                <span>{packing[person].length - completed} remaining</span>
+                <span>{selectedPacking.length - completed} remaining</span>
               </div>
               <div className="filter-tabs">
                 {(["all", "remaining", "completed"] as const).map((filter) => (
@@ -1707,29 +1950,37 @@ function PrivateHome({
         {tab === "connectivity" && (
           <section className="page">
             <PageIntro
-              kicker={`${trip.connectivity.provider} • ${sampleData ? "inert examples" : "private planning"}`}
+              kicker={`${text(trip.connectivity.provider, "Provider not selected")} • ${sampleData ? "inert examples" : "private planning"}`}
               title="Connectivity & eSIMs"
               text={sampleData
                 ? "Non-activatable profile records exercise the shared assignment control without exposing real connectivity data."
                 : "Private connectivity planning. Never store activation tokens, ICCIDs, QR payloads, or carrier credentials here."}
             />
-            <div className="notice">
-              {"order" in trip.connectivity && (
+            {(hasText(trip.connectivity.order) ||
+              hasText(trip.connectivity.assignment_status) ||
+              hasText(trip.connectivity.demo_notice)) && (
+              <div className="notice">
+              {hasText(trip.connectivity.order) && (
                 <strong>Order {trip.connectivity.order}: </strong>
               )}
-              {trip.connectivity.assignment_status}.
-              <span>{trip.connectivity.demo_notice}</span>
-            </div>
+              {text(trip.connectivity.assignment_status)}
+              {hasText(trip.connectivity.demo_notice) && (
+                <span>{trip.connectivity.demo_notice}</span>
+              )}
+              </div>
+            )}
             <div className="esim-grid">
               {trip.connectivity.profiles.map((esim: LooseRecord) => (
                 <article className="esim-card" key={esim.slot}>
                   <span>eSIM {esim.slot}</span>
-                  <h2>{esim.phone}</h2>
-                  <Secret
-                     label="Inert demo identifier"
-                     value={esim.demo_identifier}
-                    shareMode={shareMode}
-                  />
+                  <h2>{text(esim.phone, "Profile details pending")}</h2>
+                  {hasText(esim.demo_identifier) && (
+                    <Secret
+                      label={sampleData ? "Inert demo identifier" : "Profile label"}
+                      value={esim.demo_identifier}
+                      shareMode={shareMode}
+                    />
+                  )}
                   <label>
                     Installed for
                     <select
@@ -1747,15 +1998,20 @@ function PrivateHome({
                 </article>
               ))}
             </div>
+            {!trip.connectivity.profiles.length && (
+              <div className="empty-state">No connectivity profiles added.</div>
+            )}
             <div className="card-grid">
               {trip.connectivity.instructions.map((instruction: string) => (
                 <article className="card mini" key={instruction}>
                   <strong>{instruction}</strong>
                 </article>
               ))}
-              <article className="card mini">
-                <strong>{trip.connectivity.vessel_connectivity}</strong>
-              </article>
+              {hasText(trip.connectivity.vessel_connectivity) && (
+                <article className="card mini">
+                  <strong>{trip.connectivity.vessel_connectivity}</strong>
+                </article>
+              )}
             </div>
           </section>
         )}
@@ -1771,25 +2027,37 @@ function PrivateHome({
             />
             <div className="emergency">
               <strong>Public emergency guidance</strong>
-              <span>{trip.safety_accessibility.public_emergency_guidance}</span>
+              <span>
+                {text(
+                  trip.safety_accessibility.public_emergency_guidance,
+                  "No trip-specific guidance supplied. Use current official local emergency information.",
+                )}
+              </span>
             </div>
             <div className="health-grid">
               {trip.safety_accessibility.traveler_preferences.map(
                 (profile: LooseRecord) => (
                 <article className="health-card" key={profile.traveler}>
                   <h2>{profile.traveler}</h2>
-                  {profile.items.map((item: string) => (
+                  {asStringArray(profile.items).map((item) => (
                     <span key={item}>{item}</span>
                   ))}
                 </article>
                 ),
               )}
             </div>
-            <div className="notice">
-              {trip.safety_accessibility.general_guidance.map((rule: string) => (
-                <span key={rule}>{rule}</span>
-              ))}
-            </div>
+            {!trip.safety_accessibility.traveler_preferences.length && (
+              <div className="empty-state">
+                No traveler-specific operational preferences added.
+              </div>
+            )}
+            {trip.safety_accessibility.general_guidance.length > 0 && (
+              <div className="notice">
+                {trip.safety_accessibility.general_guidance.map((rule: string) => (
+                  <span key={rule}>{rule}</span>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
@@ -1803,25 +2071,30 @@ function PrivateHome({
                 : "Values here are delivered to the browser and are not encrypted by this app. Keep passwords, access codes, ticket payloads, and other secrets in the provider's protected system."}
             />
             <div className="privacy-banner">
-              Demonstration values are hidden in print and share-safe modes. This
-              interface does not encrypt values and must never be used as a real
-              password, access-code, or booking vault.
+              {sampleData
+                ? "Demonstration values are hidden in print and share-safe modes. This interface does not encrypt values and must never be used as a real password, access-code, or booking vault."
+                : "These private references are omitted from share-safe mode. This interface does not encrypt values; keep passwords, access codes, and ticket payloads in the provider's protected system."}
             </div>
-            {trip.demo_vault_groups.map((group: LooseRecord) => (
-              <div key={group.title}>
-                <h2 className="section-title">{group.title}</h2>
+            {trip.demo_vault_groups.map((group: LooseRecord, groupIndex: number) => (
+              <div key={`${text(group.title, "private-references")}-${groupIndex}`}>
+                {hasText(group.title) && (
+                  <h2 className="section-title">{group.title}</h2>
+                )}
                 <div className="secret-grid">
-                  {group.items.map((item: LooseRecord) => (
+                  {asRecordArray(group.items).map((item: LooseRecord) => (
                     <Secret
                       key={`${group.title}-${item.label}`}
-                      label={item.label}
-                      value={item.value}
+                      label={text(item.label)}
+                      value={text(item.value)}
                       shareMode={shareMode}
                     />
                   ))}
                 </div>
               </div>
             ))}
+            {!trip.demo_vault_groups.length && (
+              <div className="empty-state">No booking references stored here.</div>
+            )}
           </section>
         )}
 
@@ -1844,6 +2117,9 @@ function PrivateHome({
                 />
               ))}
             </div>
+            {!trip.pending_updates.length && (
+              <div className="empty-state">No pending details tracked.</div>
+            )}
           </section>
         )}
 

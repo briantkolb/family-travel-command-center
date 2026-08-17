@@ -93,9 +93,15 @@ if (!existsSync(tripPath) || !existsSync(packingPath)) {
 mkdirSync(dataDir, { recursive: true });
 const referenceTrip = readJson(tripPath);
 const referencePacking = readJson(packingPath);
-const travelerNames = referenceTrip.travelers.map((traveler) => traveler.display_name);
-const connectivitySlots = referenceTrip.connectivity.profiles.map((profile) => profile.slot);
-const pendingIds = new Set(referenceTrip.pending_updates.map((update) => update.id));
+const travelerNames = (referenceTrip.travelers || []).map(
+  (traveler) => traveler.display_name,
+);
+const connectivitySlots = (referenceTrip.connectivity?.profiles || []).map(
+  (profile) => profile.slot,
+);
+const pendingIds = new Set(
+  (referenceTrip.pending_updates || []).map((update) => update.id),
+);
 
 const databasePath = path.join(dataDir, "travel-command-center-reference.sqlite");
 const db = new DatabaseSync(databasePath);

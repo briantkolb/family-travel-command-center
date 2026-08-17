@@ -45,6 +45,8 @@ The trip file uses JSON:
 - Local date-times use `YYYY-MM-DDTHH:MM:SS` and represent the local time at that trip location.
 - Use `null` for a deliberately unknown supported value; do not invent one.
 
+Optional arrays may be omitted or represented as `[]`. The application treats missing optional lists as empty and omits unavailable actions or sections. See [`FTCC_BUILDER_DATA_CONTRACT.md`](FTCC_BUILDER_DATA_CONTRACT.md) for the concise Builder-facing contract.
+
 If an edit causes a syntax error, an AI assistant or a JSON-aware editor can usually identify the missing comma or bracket.
 
 ## 1. Trip identity and dates
@@ -145,6 +147,8 @@ For every `lodging` entry, review:
 - Luggage options
 - Power/equipment notes
 - Access and Wi-Fi fields
+
+These details are optional. Omit unavailable host/contact information, luggage-address lists, equipment notes, and instruction lists rather than inventing them. Call and WhatsApp actions render only when a host phone number is present.
 
 Access codes and Wi-Fi passwords are browser-delivered in the full view. This project is not an encrypted vault. Prefer leaving highly sensitive access credentials out and retrieving them from the original provider when needed.
 

@@ -1,7 +1,6 @@
 {
   "identity": {
     "sample_data": true,
-    "private_validation_canary": "SECRET_CANARY_CANONICAL_PRIVATE_ONLY",
     "application_name": "Family Travel Command Center",
     "short_name": "Family Travel",
     "trip_name": "Northstar Isles Coastal Circuit",

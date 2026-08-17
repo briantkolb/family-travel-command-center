@@ -1,0 +1,160 @@
+{
+  "identity": {
+    "sample_data": false,
+    "application_name": "Family Travel Command Center",
+    "short_name": "Family Travel",
+    "trip_name": "Sparse London and Paris Test Trip",
+    "trip_dates": {
+      "start": "2032-04-06",
+      "end": "2032-04-08",
+      "label": "April 6–8, 2032"
+    },
+    "hero_title": ["London", "to Paris"],
+    "hero_description": "A fictional sparse-data fixture for Builder compatibility."
+  },
+  "sharing": {
+    "schema_version": 1,
+    "identity": {
+      "application_name": "Family Travel Command Center",
+      "short_name": "Family Travel",
+      "share_title": "London and Paris shared outline",
+      "date_label": "April 6–8, 2032",
+      "summary": "A fictional, explicitly approved high-level outline."
+    },
+    "days": [
+      {
+        "date": "2032-04-06",
+        "place_label": "London",
+        "summary": "Arrival day."
+      },
+      {
+        "date": "2032-04-07",
+        "place_label": "Paris",
+        "summary": "City day."
+      }
+    ],
+    "transport": [
+      {
+        "date": "2032-04-07",
+        "route_label": "London to Paris",
+        "service_label": "Rail",
+        "status": "Planned"
+      }
+    ],
+    "ports": [],
+    "tours": [
+      {
+        "date": "2032-04-07",
+        "name": "Public garden visit",
+        "status": "Planned"
+      }
+    ]
+  },
+  "travelers": [
+    {
+      "id": "alex-morgan",
+      "display_name": "Alex Morgan",
+      "role": "Traveler"
+    },
+    {
+      "id": "jamie-morgan",
+      "display_name": "Jamie Morgan",
+      "role": "Traveler"
+    }
+  ],
+  "airports": {
+    "LHR": "London Heathrow",
+    "CDG": "Paris Charles de Gaulle"
+  },
+  "onward_steps": {},
+  "flights": [
+    {
+      "date": "2032-04-06",
+      "route": {
+        "from": "LHR",
+        "to": "CDG"
+      },
+      "flight_number": "ZX 204",
+      "operating_airline": "Example Air",
+      "departure_local": null,
+      "arrival_local": null
+    }
+  ],
+  "ground_transport": [
+    {
+      "date": "2032-04-06",
+      "route": "Airport to lodging",
+      "status": "pending_confirmation",
+      "still_needed": ["Pickup time"]
+    }
+  ],
+  "lodging": [
+    {
+      "city": "London",
+      "display_name": "Example London Stay",
+      "address": "1 Example Square, London",
+      "check_in": "2032-04-06T15:00:00",
+      "check_out": "2032-04-07T10:00:00"
+    }
+  ],
+  "cruise": {
+    "ship": "Not part of this trip",
+    "dates": "",
+    "staterooms": [],
+    "ports": [],
+    "dining": []
+  },
+  "tours": [
+    {
+      "date": "2032-04-07",
+      "name": "Public garden visit",
+      "type": "Self-guided activity",
+      "status": "planned",
+      "meeting": "Pending human confirmation"
+    }
+  ],
+  "connectivity": {
+    "provider": "Not selected",
+    "assignment_status": "No profiles added",
+    "profiles": [],
+    "instructions": []
+  },
+  "safety_accessibility": {
+    "traveler_preferences": [
+      {
+        "traveler": "Alex Morgan",
+        "items": ["Allow extra transfer time"]
+      }
+    ],
+    "general_guidance": []
+  },
+  "pending_updates": [
+    {
+      "id": "sparse_transfer_time",
+      "text": "Confirm the airport pickup time.",
+      "due": "When supplied by the traveler"
+    }
+  ],
+  "daily_plan": [
+    {
+      "date": "2032-04-06",
+      "place": "London",
+      "events": [
+        ["Pending", "Arrival", "Exact timing not supplied."]
+      ]
+    },
+    {
+      "date": "2032-04-07",
+      "place": "Paris"
+    },
+    {
+      "date": "2032-04-08",
+      "place": "Departure",
+      "events": []
+    }
+  ],
+  "preparation_groups": {
+    "Before departure": ["Review the confirmed itinerary"]
+  },
+  "demo_vault_groups": []
+}

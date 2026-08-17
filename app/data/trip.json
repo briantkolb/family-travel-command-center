@@ -1,7 +1,6 @@
 {
   "identity": {
     "sample_data": true,
-    "private_validation_canary": "SECRET_CANARY_CANONICAL_PRIVATE_ONLY",
     "application_name": "Family Travel Command Center",
     "short_name": "Family Travel",
     "trip_name": "Northstar Isles Coastal Circuit",
@@ -15,7 +14,8 @@
       "One field-tested reference."
     ],
     "hero_description": "A fictional coastal itinerary demonstrating travel coordination, shared checklists, offline access, and clearly inert booking examples.",
-    "footer_note": "Fictional demonstration data • never store real secrets in this reference app"
+    "footer_note": "Fictional demonstration data • never store real secrets in this reference app",
+    "private_validation_canary": "SECRET_CANARY_GENERATED_PRIVATE_ONLY"
   },
   "sharing": {
     "schema_version": 1,

@@ -83,6 +83,8 @@ There are two canonical files to edit:
 
 Despite their Northstar filenames, these remain the canonical source files after customization. Renaming them requires corresponding script changes and is not necessary.
 
+If an AI Builder is producing the files, give it the concise authoritative [`docs/FTCC_BUILDER_DATA_CONTRACT.md`](docs/FTCC_BUILDER_DATA_CONTRACT.md). It distinguishes required structure from optional real-trip data and defines the exact fail-closed ShareTripV1 boundary.
+
 Do **not** edit these generated files directly:
 
 - `app/data/trip.json`

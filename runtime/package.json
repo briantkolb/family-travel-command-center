@@ -1,6 +1,6 @@
 {
   "name": "family-travel-command-center-runtime",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "description": "Explicit production dependency closure for the supported Vinext Node runtime.",
   "license": "MIT",

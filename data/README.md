@@ -11,7 +11,7 @@ The filenames stay the same even after Northstar Isles has been replaced. The la
 
 ## Simple workflow
 
-1. Open [`docs/AI_TRIP_IMPORT_PROMPT.md`](../docs/AI_TRIP_IMPORT_PROMPT.md).
+1. For the Family Travel Command Center Builder, provide [`docs/FTCC_BUILDER_DATA_CONTRACT.md`](../docs/FTCC_BUILDER_DATA_CONTRACT.md). Coding-agent customization can continue to use [`docs/AI_TRIP_IMPORT_PROMPT.md`](../docs/AI_TRIP_IMPORT_PROMPT.md).
 2. In ChatGPT or another capable LLM, provide that prompt, the two current sample files, and only the trip source material you are comfortable sharing with that service.
 3. Ask it to return two **complete downloadable replacement files** with the exact filenames above. Do not accept partial snippets.
 4. Review the files carefully. Confirm traveler names, dates, local times, reservations, unknown details, the privacy checklist, and every leaf in the trip JSON's top-level `sharing` profile.

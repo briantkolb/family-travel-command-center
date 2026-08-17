@@ -14,7 +14,8 @@ const referenceTrip = JSON.parse(
 );
 const firstTraveler = referenceTrip.travelers[0];
 const secondTraveler = referenceTrip.travelers[1] || firstTraveler;
-const firstProfileSlot = referenceTrip.connectivity.profiles[0]?.slot;
+const firstProfileSlot = referenceTrip.connectivity?.profiles?.[0]?.slot;
+const firstPendingId = referenceTrip.pending_updates?.[0]?.id;
 
 async function jsonRequest(origin, pathname, method = "GET", body) {
   const response = await fetch(`${origin}${pathname}`, {
@@ -151,11 +152,13 @@ test("API validation and SQLite state remain reliable across clients and restart
       assert.equal(result.response.status, 400);
     }
 
-    result = await jsonRequest(running.origin, "/api/pending", "PUT", {
-      id: "demo_departure_gate",
-      value: "Demonstration gate D4",
-    });
-    assert.equal(result.response.status, 200);
+    if (firstPendingId) {
+      result = await jsonRequest(running.origin, "/api/pending", "PUT", {
+        id: firstPendingId,
+        value: "Confirmed test value",
+      });
+      assert.equal(result.response.status, 200);
+    }
     result = await jsonRequest(running.origin, "/api/pending", "PUT", {
       id: "unlisted_pending_value",
       value: "Rejected",
@@ -177,7 +180,9 @@ test("API validation and SQLite state remain reliable across clients and restart
         firstTraveler.display_name,
       );
     }
-    assert.equal(secondClient.pending.demo_departure_gate, "Demonstration gate D4");
+    if (firstPendingId) {
+      assert.equal(secondClient.pending[firstPendingId], "Confirmed test value");
+    }
 
     await stopProductionServer(running.child);
     running = await startProductionServer({
@@ -196,7 +201,9 @@ test("API validation and SQLite state remain reliable across clients and restart
         firstTraveler.display_name,
       );
     }
-    assert.equal(afterRestart.pending.demo_departure_gate, "Demonstration gate D4");
+    if (firstPendingId) {
+      assert.equal(afterRestart.pending[firstPendingId], "Confirmed test value");
+    }
 
     const databaseFiles = await readdir(dataDir);
     assert.ok(databaseFiles.includes("travel-command-center-reference.sqlite"));

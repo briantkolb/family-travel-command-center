@@ -11,19 +11,29 @@ import {
 
 const root = path.resolve(import.meta.dirname, "..");
 const referenceTrip = JSON.parse(
-  await readFile(path.join(root, "data", "northstar-isles-trip.json"), "utf8"),
+  await readFile(path.join(root, "app", "data", "trip.json"), "utf8"),
 );
-const firstTravelerId = referenceTrip.travelers[0].id;
+const referenceShareTrip = JSON.parse(
+  await readFile(path.join(root, "app", "data", "trip-share.json"), "utf8"),
+);
+const referencePacking = JSON.parse(
+  await readFile(path.join(root, "app", "data", "packing.json"), "utf8"),
+);
+const firstPackingItemId = Object.values(referencePacking).flat()[0]?.id;
+assert.ok(firstPackingItemId, "At least one generated packing item is required");
+const referenceShareTitle = referenceShareTrip.identity.share_title;
 const excludedShareValues = [
   referenceTrip.identity.private_validation_canary,
-  ...referenceTrip.flights.map((record) => record.confirmation),
-  ...referenceTrip.lodging.flatMap((record) => [
+  ...(referenceTrip.flights || []).map((record) => record.confirmation),
+  ...(referenceTrip.lodging || []).flatMap((record) => [
     record.confirmation,
     record.host_phone,
     record.wifi?.network,
   ]),
-  ...referenceTrip.cruise.staterooms.map((record) => record.reservation),
-  ...referenceTrip.ground_transport.flatMap((record) => [
+  ...(referenceTrip.cruise?.staterooms || []).map(
+    (record) => record.reservation,
+  ),
+  ...(referenceTrip.ground_transport || []).flatMap((record) => [
     record.pnr,
     ...Object.values(record.boarding_codes || {}),
   ]),
@@ -57,14 +67,12 @@ test("production hydrates, navigates, persists state, and queues private changes
 
     const response = await page.goto(running.origin, { waitUntil: "networkidle" });
     assert.equal(response?.status(), 200);
-    await page.getByRole("heading", { name: /Your whole trip/i }).waitFor();
+    await page.locator('[data-testid="private-trip-view"]').waitFor();
     await openTab(page, "Packing", "Team packing");
     assert.deepEqual(failedAssets, []);
     assert.deepEqual(consoleErrors, []);
 
-    const firstCheck = page
-      .locator(`[data-check-id^="reference-packing:${firstTravelerId}:"]`)
-      .first();
+    const firstCheck = page.locator(`[data-check-id="${firstPackingItemId}"]`);
     const firstId = await firstCheck.getAttribute("data-check-id");
     assert.ok(firstId);
     const saved = page.waitForResponse(
@@ -115,7 +123,7 @@ test("production hydrates, navigates, persists state, and queues private changes
 
     await context.setOffline(true);
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page.getByRole("heading", { name: /Your whole trip/i }).waitFor();
+    await page.locator('[data-testid="private-trip-view"]').waitFor();
     assert.equal(await page.locator('[data-testid="share-safe-view"]').count(), 0);
     await openTab(page, "Itinerary", "Daily itinerary");
     await openTab(page, "Packing", "Team packing");
@@ -123,17 +131,13 @@ test("production hydrates, navigates, persists state, and queues private changes
       await page.locator(`[data-check-id="${firstId}"]`).getAttribute("aria-pressed"),
       "true",
     );
-    const offlineCheck = page
-      .locator(
-        `[data-check-id^="reference-packing:${firstTravelerId}:"][aria-pressed="false"]`,
-      )
-      .first();
+    const offlineCheck = page.locator(`[data-check-id="${firstId}"]`);
     const offlineId = await offlineCheck.getAttribute("data-check-id");
     assert.ok(offlineId);
     await offlineCheck.click();
     assert.equal(
       await page.locator(`[data-check-id="${offlineId}"]`).getAttribute("aria-pressed"),
-      "true",
+      "false",
     );
     await page.waitForFunction(() => {
       const queue = JSON.parse(
@@ -162,7 +166,7 @@ test("production hydrates, navigates, persists state, and queues private changes
       for (let attempt = 0; attempt < 50; attempt += 1) {
         const response = await fetch("/api/state", { cache: "no-store" });
         const state = await response.json();
-        if (state.checks[id] === true) return true;
+        if (state.checks[id] === false) return true;
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
       return false;
@@ -176,13 +180,17 @@ test("production hydrates, navigates, persists state, and queues private changes
       }
     });
     await page.goto(`${running.origin}/?share=1`, { waitUntil: "networkidle" });
-    await page.getByRole("heading", { name: /Northstar Isles coastal highlights/i }).waitFor();
+    await page
+      .getByRole("heading", { name: referenceShareTitle, exact: true })
+      .waitFor();
     assert.deepEqual(shareApiRequests, []);
     assert.equal(await page.getByText(/Private view/i).count(), 0);
     await context.setOffline(true);
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page.getByRole("heading", { name: /Northstar Isles coastal highlights/i }).waitFor();
-    assert.equal(await page.getByRole("heading", { name: /Your whole trip/i }).count(), 0);
+    await page
+      .getByRole("heading", { name: referenceShareTitle, exact: true })
+      .waitFor();
+    assert.equal(await page.locator('[data-testid="private-trip-view"]').count(), 0);
     await context.setOffline(false);
 
     const cachedUrls = await page.evaluate(async () => {
@@ -234,7 +242,7 @@ test("private bootstrap fails explicitly without cached data and share mode neve
     const offlineShellContext = await browser.newContext({ serviceWorkers: "allow" });
     const offlineShellPage = await offlineShellContext.newPage();
     await offlineShellPage.goto(running.origin, { waitUntil: "networkidle" });
-    await offlineShellPage.getByRole("heading", { name: /Your whole trip/i }).waitFor();
+    await offlineShellPage.locator('[data-testid="private-trip-view"]').waitFor();
     await offlineShellPage.evaluate(() => navigator.serviceWorker.ready);
     await offlineShellPage.reload({ waitUntil: "networkidle" });
     assert.equal(
@@ -254,7 +262,7 @@ test("private bootstrap fails explicitly without cached data and share mode neve
     const cachedContext = await browser.newContext({ serviceWorkers: "allow" });
     const cachedPage = await cachedContext.newPage();
     await cachedPage.goto(running.origin, { waitUntil: "networkidle" });
-    await cachedPage.getByRole("heading", { name: /Your whole trip/i }).waitFor();
+    await cachedPage.locator('[data-testid="private-trip-view"]').waitFor();
     assert.equal(
       await cachedPage.evaluate(() => localStorage.hasOwnProperty("travel-reference-private-data-v1")),
       true,
@@ -275,11 +283,13 @@ test("private bootstrap fails explicitly without cached data and share mode neve
       }
     });
     await cachedPage.goto(`${running.origin}/?share=1`, { waitUntil: "networkidle" });
-    await cachedPage.getByRole("heading", { name: /Northstar Isles coastal highlights/i }).waitFor();
+    await cachedPage
+      .getByRole("heading", { name: referenceShareTitle, exact: true })
+      .waitFor();
     assert.deepEqual(await cachedPage.evaluate(() => window.__privateCacheReads), []);
     assert.deepEqual(shareRequests, []);
     assert.equal(await cachedPage.locator('[data-testid="share-safe-view"]').count(), 1);
-    assert.equal(await cachedPage.getByRole("heading", { name: /Your whole trip/i }).count(), 0);
+    assert.equal(await cachedPage.locator('[data-testid="private-trip-view"]').count(), 0);
     await cachedContext.close();
   } finally {
     await browser?.close();
@@ -315,7 +325,9 @@ test("direct share-safe navigation hydrates cleanly before normal private bootst
     });
     assert.equal(shareResponse?.status(), 200);
     const shareResponseHtml = await shareResponse.text();
-    await sharePage.getByRole("heading", { name: /Northstar Isles coastal highlights/i }).waitFor();
+    await sharePage
+      .getByRole("heading", { name: referenceShareTitle, exact: true })
+      .waitFor();
     assert.equal(await sharePage.locator("main.share-mode").count(), 1);
     assert.equal(
       shareRequests.some((url) => /\/api\/trip(?:\?|$)/.test(url)),
@@ -364,12 +376,11 @@ test("direct share-safe navigation hydrates cleanly before normal private bootst
       waitUntil: "networkidle",
     });
     assert.equal(normalResponse?.status(), 200);
-    await normalPage.getByRole("heading", { name: /Your whole trip/i }).waitFor();
+    await normalPage.locator('[data-testid="private-trip-view"]').waitFor();
     await normalPage
       .getByRole("button", { name: "Open share-safe view", exact: true })
       .waitFor();
-    await openTab(normalPage, "Lodging", "Lodging & access");
-    await normalPage.locator(".lodging-card").first().waitFor();
+    await openTab(normalPage, "Itinerary", "Daily itinerary");
     assert.ok(normalRequests.some((url) => /\/api\/trip(?:\?|$)/.test(url)));
     assert.ok(normalRequests.some((url) => /\/api\/packing(?:\?|$)/.test(url)));
     assert.deepEqual(normalConsoleErrors, []);
@@ -400,7 +411,9 @@ test("share-safe production never requests or stores excluded detail categories"
       waitUntil: "networkidle",
     });
     assert.equal(response?.status(), 200);
-    await page.getByRole("heading", { name: /Northstar Isles coastal highlights/i }).waitFor();
+    await page
+      .getByRole("heading", { name: referenceShareTitle, exact: true })
+      .waitFor();
     assert.equal(
       requestedUrls.some((url) => /\/api\/trip(?:\?|$)/.test(url)),
       false,

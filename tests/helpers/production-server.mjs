@@ -16,6 +16,7 @@ export async function startProductionServer({
   appPort,
   mode = "start",
   explicitHost = true,
+  allowedHosts = "",
 }) {
   const logs = [];
   const environment = {
@@ -25,6 +26,7 @@ export async function startProductionServer({
     DATA_DIR: dataDir,
     PORT: String(port),
     APP_INTERNAL_PORT: String(appPort),
+    ALLOWED_HOSTS: allowedHosts,
   };
   if (explicitHost) environment.HOST = "127.0.0.1";
   else delete environment.HOST;

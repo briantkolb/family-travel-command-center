@@ -4,14 +4,8 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Family Travel Command Center",
   description:
-    "Fictional reference data in a field-tested travel coordination implementation. No built-in authentication or encryption.",
+    "A private-first travel coordination dashboard with an explicit, read-only share-safe view. No built-in authentication or encryption.",
   applicationName: "Family Travel Command Center",
-  manifest: "/manifest.webmanifest?v=2",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Family Travel",
-  },
   formatDetection: {
     telephone: true,
   },

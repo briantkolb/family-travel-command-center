@@ -1,0 +1,29 @@
+{
+  "identity": {
+    "sample_data": false,
+    "trip_name": "Synthetic Real-Data Mode Fixture",
+    "private_booking": "SECRET_CANARY_REAL_BOOKING"
+  },
+  "future_ai_added_section": {
+    "passport_note": "SECRET_CANARY_REAL_FUTURE_FIELD"
+  },
+  "packing": [
+    { "note": "SECRET_CANARY_REAL_PACKING" }
+  ],
+  "sharing": {
+    "schema_version": 1,
+    "identity": {
+      "application_name": "Family Travel Command Center",
+      "short_name": "Family Travel",
+      "share_title": "Reviewed real-data-mode overview",
+      "date_label": "Summer 2031",
+      "summary": "A synthetic fixture proving real-data mode uses the same strict share contract."
+    },
+    "days": [],
+    "transport": [],
+    "ports": [
+      { "date": "2031-06-10", "port": "Approved Port Label" }
+    ],
+    "tours": []
+  }
+}

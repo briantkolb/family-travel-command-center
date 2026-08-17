@@ -25,7 +25,9 @@ Commands:
 
 ```text
 npm install
-npm run dev
+npm run regenerate
+npm run build:prepared
+npm start
 ```
 
 Open `http://127.0.0.1:3000`.
@@ -34,22 +36,29 @@ Not required: Docker, VPS, domain, Cloudflare, or authentication. The server lis
 
 ## B. Trusted local/private-network use
 
-This lets another device on the same trusted LAN reach the development server.
+This lets another device on the same trusted LAN reach a production build. Never expose the development server: Vite's development module serving is for loopback-only source work, not real-trip LAN or hosted access.
 
 PowerShell:
 
 ```powershell
 $env:HOST="0.0.0.0"
-npm run dev
+$env:ALLOWED_HOSTS="192.168.1.25"
+npm run regenerate
+npm run build:prepared
+npm start
 ```
 
 macOS/Linux:
 
 ```sh
-HOST=0.0.0.0 npm run dev
+npm run regenerate
+npm run build:prepared
+HOST=0.0.0.0 ALLOWED_HOSTS=192.168.1.25 npm start
 ```
 
-Open `http://<laptop-lan-address>:3000` on the other device. Your operating-system firewall may ask for permission.
+Replace `192.168.1.25` with the laptop's verified LAN address, then open `http://<laptop-lan-address>:3000` on the other device. Your operating-system firewall may ask for permission.
+
+`server.mjs` accepts `127.0.0.1`, `localhost`, and IPv6 loopback by default. `ALLOWED_HOSTS` is a comma-separated list of additional hostnames or IP addresses that may appear in the HTTP `Host` header. Portless entries allow the chosen hostname on any port; an entry with a port permits only that exact port. Do not use a wildcard. Requests with an unapproved Host are rejected before private APIs are routed.
 
 Important limitations:
 
@@ -57,6 +66,7 @@ Important limitations:
 - Use this only on a network and devices you trust.
 - Browsing may work over LAN HTTP, but service workers and installable PWA behavior generally require HTTPS except on localhost.
 - Do not open this port to the public internet.
+- Stop the server before editing canonical data, then regenerate and rebuild before restarting it.
 
 Not inherently required: Docker, VPS, domain, or Cloudflare. Authentication is strongly recommended if the network is not fully trusted.
 
@@ -71,12 +81,16 @@ The repository provides:
 - Loopback publication on host port `3100`
 - A persistent `travel-reference-state` volume
 - An application health check
+- A non-root final container containing production dependencies and required runtime/build artifacts only
+- Browser security headers including CSP, frame denial, MIME-sniffing protection, a conservative permissions policy, and no-referrer behavior
 
 Typical sequence on a prepared Docker host:
 
 ```text
-docker compose -f docker-compose.vps.yml up -d --build
+ALLOWED_HOSTS=travel.example.com docker compose -f docker-compose.vps.yml up -d --build
 ```
+
+Set `ALLOWED_HOSTS` in the shell or Compose environment to the exact public hostname used by the reverse proxy. Loopback remains allowed for the container health check. If the reverse proxy deliberately rewrites `Host`, allow the exact rewritten hostname instead and verify the proxy configuration.
 
 Configure the host's HTTPS reverse proxy to forward the chosen HTTPS site to `http://127.0.0.1:3100`. Reverse-proxy product setup is intentionally not automated here because it controls certificates, public exposure, and access policy.
 
@@ -112,6 +126,8 @@ Minimum expectations:
 - A plan for lost phones, revoked users, logs, and backups
 - No secrets or ticket/QR payloads committed to the repository
 
+The application headers are defense in depth, not access control. Preserve them at the reverse proxy. If the proxy sets its own CSP, test hydration, normal `/`, `/?share=1`, the manifest, and the service worker in a real browser before relying on it.
+
 Share-safe mode does not satisfy this requirement. It controls what the share-safe page requests and renders; it does not authenticate a visitor or prevent access to an unrestricted full route.
 
 ## Requirement matrix
@@ -143,3 +159,17 @@ The SQLite database contains mutable checklist and pending state, not the canoni
 - Deleting the database resets mutable state.
 - Replacing canonical traveler or packing identifiers can make older checklist keys obsolete.
 - Never publish a database copied from a real trip as part of a public repository.
+
+The container runs as the image's unprivileged `node` user. A volume first created by the previous root-running image may have incompatible ownership. Before upgrading that existing deployment, stop the old container, back up the volume, and deliberately change the mounted `/data` directory ownership to the UID/GID used by the new image. Do not guess against an unverified volume path. A newly created named volume is initialized by the image with the correct ownership.
+
+## PWA privacy-mode migration
+
+Version 1.2 and later advertises and registers PWA support only after private mode is loaded. Share-safe navigation never registers a service worker and never exposes an install manifest. Navigation cache keys normalize separately to `/` and `/?share=1`, so a share request cannot fall back to a cached private page.
+
+If a device installed an older release while viewing `/?share=1`, uninstall that home-screen app and clear the site's storage/service worker before using the new release. Then either use the share link in the browser or deliberately install the PWA from private `/` only.
+
+## Private offline data boundary
+
+After a successful private `/api/trip` and `/api/packing` load, normal mode stores one versioned, private-only browser copy under `travel-reference-private-data-v1` in origin-local `localStorage`. It is used only when a later normal `/` launch cannot reach those two APIs. Existing checklist/offline mutation state keeps its separate private keys and retry behavior.
+
+The application resolves the URL mode before any private cache access. `/?share=1` never reads, migrates, copies, or inspects the private trip/packing cache. If normal mode is offline before this device has saved a private copy, it shows “Reconnect to load this trip” and never falls back to ShareView. Browser storage is device data: clear the site's storage or browser profile when removing private trip data from a device.

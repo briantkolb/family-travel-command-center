@@ -18,7 +18,7 @@ You can run and personalize this project without Codex, Claude Code, OpenClaw, o
    - `northstar-isles-packing.md`
 5. Put those two files in the [`data/`](data/) folder, replacing the fictional sample files, and run **Start Here** again. The full file-drop walkthrough is in [`data/README.md`](data/README.md).
 
-The launcher checks dependencies, runs `npm install`, regenerates the browser data from those two canonical files, starts a loopback-only development server, and opens [http://127.0.0.1:3000](http://127.0.0.1:3000). Keep its terminal window open while using the app; press `Ctrl+C` there to stop it. If Windows then asks `Terminate batch job?`, enter `Y`.
+The launcher checks dependencies, runs `npm install`, regenerates the browser data from those two canonical files, creates a production build, starts a loopback-only production server, and opens [http://127.0.0.1:3000](http://127.0.0.1:3000). The first build can take a minute. Keep its terminal window open while using the app; press `Ctrl+C` there to stop it. If Windows then asks `Terminate batch job?`, enter `Y`.
 
 The launchers do not collect credentials, install Node or other system software, open firewall ports, bind publicly, deploy, or publish your files. For phone, network, or hosted access, use the separate [Deployment guide](docs/DEPLOYMENT.md).
 
@@ -28,9 +28,9 @@ The launchers do not collect credentials, install Node or other system software,
 - Keeps lodging, vessel, excursion, and connectivity details together.
 - Provides one packing list per traveler with searchable completion state.
 - Synchronizes checklist, assignment, and pending-update state through a small local SQLite service.
-- Works as an installable Progressive Web App (PWA) when served from a secure origin.
-- Supports offline access to the application shell and queued checklist updates.
-- Provides a share-safe view that structurally omits selected detail categories.
+- Offers private mode as an installable Progressive Web App (PWA) when served from a secure origin.
+- Supports an offline application shell and queues private checklist updates made while the loaded app is temporarily offline.
+- Provides a read-only share-safe view built only from explicitly approved fields.
 
 Northstar Isles, its travelers, providers, addresses, phone numbers, reservations, and schedules are invented. They are schema examples, not travel recommendations.
 
@@ -72,7 +72,7 @@ Open [http://127.0.0.1:3000](http://127.0.0.1:3000) in a browser. Keep the termi
 
 You should see **Northstar Isles Coastal Circuit**, beginning with a large “Your whole trip” panel. Try the Itinerary and Packing tabs, check a packing item, reload the page, and confirm the item remains checked.
 
-`npm run dev` regenerates the derived trip, packing, and icon files before starting, so a normal first run requires no separate build step.
+`npm run dev` regenerates the derived trip, packing, and icon files before starting. It is a loopback-only developer workflow and must not be exposed to a LAN or hosted with real trip data. The Start Here launchers use a production build instead.
 
 ## B. Make it yours
 
@@ -98,8 +98,9 @@ The next regeneration would overwrite direct edits to those files.
 2. Open `data/northstar-isles-trip.json`.
 3. Change `identity.trip_name` and `identity.hero_description`.
 4. Change `identity.sample_data` from `true` to `false` when the file no longer represents the bundled fictional sample.
-5. Save the file without removing commas, braces, brackets, or quotation marks.
-6. Regenerate and verify:
+5. Review or replace the top-level `sharing` profile. Removing it makes the share route display “No details approved for sharing”; private fields are never used as fallbacks.
+6. Save the file without removing commas, braces, brackets, or quotation marks.
+7. Regenerate and verify:
 
 ```text
 npm run regenerate
@@ -126,10 +127,10 @@ Before giving documents to any AI service, understand that service's data-handli
 
 ## D. Take it on your phone
 
-This project is a PWA. On supported phones, an installed PWA opens from the home screen and can retain the application shell for offline use.
+Private mode is a PWA. Share-safe mode deliberately does not advertise a manifest or register a service worker, so installing from a shared link cannot later launch into the private route. On supported phones, a PWA installed from private mode can retain the application shell.
 
 - **On the same laptop:** `npm run dev` and `http://127.0.0.1:3000` are enough.
-- **On a trusted private network:** expose the server on the LAN as described in [Deployment](docs/DEPLOYMENT.md). Ordinary browsing can work over HTTP, but phone PWA installation and service workers generally require HTTPS.
+- **On a trusted private network:** use a production build on the LAN exactly as described in [Deployment](docs/DEPLOYMENT.md). Never expose `npm run dev`. Ordinary browsing can work over HTTP, but phone PWA installation and service workers generally require HTTPS.
 - **Hosted:** use the existing stateful Node/Docker architecture behind HTTPS. Static file hosting alone cannot preserve shared checklists, pending updates, assignments, or the SQLite state service.
 
 The app has **no built-in authentication or encryption**. Hosting and access-control decisions matter much more once the sample data is replaced.
@@ -138,7 +139,7 @@ The app has **no built-in authentication or encryption**. Hosting and access-con
 
 - The bundled Northstar Isles trip is fictional and safe as a public demo.
 - The application currently has **no authentication or encryption**.
-- Share-safe mode minimizes what the browser receives, but it is **not an authorization system**.
+- Share-safe mode is read-only and receives only the explicit `ShareTripV1` allowlist, but it is **not an authorization system**.
 - Do not expose a full personal trip containing sensitive reservation data on an unrestricted public URL.
 - Local laptop use or a trusted private network is appropriate for personal experimentation.
 - Hosted use with real personal data requires an additional access-control layer in front of this application.
@@ -146,7 +147,7 @@ The app has **no built-in authentication or encryption**. Hosting and access-con
 - Confirmation numbers, addresses, phone numbers, room assignments, and detailed movements may also be sensitive even when they are not credentials.
 - `data/northstar-isles-trip.json` is served by the private/full view. Treat it according to the most sensitive value you place inside it.
 
-The share-safe view is available at `http://127.0.0.1:3000/?share=1`. It structurally omits selected reservation, lodging, contact, access, assignment, and pending-value categories. A person who can access the unrestricted server can still request the full view; share-safe mode does not replace authentication.
+The share-safe view is available at `http://127.0.0.1:3000/?share=1`. Its conservative contract omits traveler names, packing, dining, flight numbers, minute-level times and movements, lodging, contacts, addresses, booking/access values, preparation data, accessibility data, and all mutable state. It has no link back to private mode. See [Share-safe data contract](docs/SHARE_SAFE.md) before approving any fields. A person who can access the unrestricted server can still request `/`; share-safe mode does not replace authentication.
 
 ## F. Project structure
 
@@ -181,6 +182,8 @@ npm start            Run an already-built production application
 ```
 
 Use `npm run check` before sharing changes. Run `npm run test:browser:install` once on a new machine before the complete test suite; the five-minute demo itself does not require this download.
+
+Dependency audit notices, the stable upgrade policy, and the two currently known Vinext build-time transitive advisories are documented in [Dependency Security Status](docs/DEPENDENCY_SECURITY.md). Audit output is not globally suppressed.
 
 ## H. Architecture and advanced deployment
 

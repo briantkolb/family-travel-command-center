@@ -14,7 +14,7 @@ const referenceTrip = JSON.parse(
   await readFile(path.join(root, "data", "northstar-isles-trip.json"), "utf8"),
 );
 
-test("production HTML and every referenced local asset are available", { timeout: 30_000 }, async () => {
+test("neutral production HTML and every referenced local asset are available", { timeout: 30_000 }, async () => {
   const dataDir = await mkdtemp(path.join(tmpdir(), "travel-reference-html-"));
   const port = 25200 + Math.floor(Math.random() * 500);
   let running;
@@ -25,9 +25,14 @@ test("production HTML and every referenced local asset are available", { timeout
     assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
     const html = await response.text();
     assert.match(html, /Family Travel Command Center/);
-    assert.ok(html.includes(referenceTrip.identity.trip_name));
-    assert.match(html, /manifest\.webmanifest\?v=2/);
+    assert.match(html, /Loading private trip/);
+    assert.equal(html.includes(referenceTrip.sharing.identity.share_title), false);
+    assert.doesNotMatch(html, /Your whole trip/);
+    assert.doesNotMatch(html, /manifest\.webmanifest/);
     assert.doesNotMatch(html, /fonts\.googleapis|codex-preview/i);
+    assert.match(response.headers.get("content-security-policy") || "", /frame-ancestors 'none'/);
+    assert.equal(response.headers.get("x-frame-options"), "DENY");
+    assert.equal(response.headers.get("x-content-type-options"), "nosniff");
 
     const references = [
       ...html.matchAll(/(?:src|href)=["'](\/[^"']+)["']/g),
@@ -55,6 +60,7 @@ test("production HTML and every referenced local asset are available", { timeout
     }
     const deliveredText = browserDelivered.join("\n");
     const excludedValues = [
+      referenceTrip.identity.private_validation_canary,
       ...referenceTrip.flights.map((record) => record.confirmation),
       ...referenceTrip.lodging.flatMap((record) => [
         record.confirmation,
@@ -72,11 +78,10 @@ test("production HTML and every referenced local asset are available", { timeout
     }
 
     const shareState = await fetch(`${running.origin}/api/state?share=1`);
-    assert.deepEqual(Object.keys(await shareState.json()).sort(), [
-      "checks",
-      "hasChecklistState",
-      "syncedAt",
-    ]);
+    assert.equal(shareState.status, 403);
+    assert.deepEqual(await shareState.json(), {
+      error: "Private state is unavailable in share-safe mode.",
+    });
   } finally {
     await stopProductionServer(running?.child);
     await rm(dataDir, { recursive: true, force: true });

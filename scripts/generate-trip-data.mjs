@@ -1,6 +1,10 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { toShareSafeTrip } from "../lib/share-safe-trip.mjs";
+import {
+  diagnoseShareProfile,
+  formatShareProfileDiagnostic,
+  toShareSafeTrip,
+} from "../lib/share-safe-trip.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const sourcePath = path.join(root, "data", "northstar-isles-trip.json");
@@ -53,3 +57,7 @@ await Promise.all([
   ),
 ]);
 console.log(`trip=${trip.identity.trip_name} travelers=${trip.travelers.length}`);
+const sharingDiagnostic = diagnoseShareProfile(trip);
+const sharingMessage = formatShareProfileDiagnostic(trip);
+if (sharingDiagnostic.status === "invalid") console.warn(sharingMessage);
+else console.log(sharingMessage);

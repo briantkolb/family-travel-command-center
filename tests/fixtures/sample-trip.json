@@ -1,0 +1,36 @@
+{
+  "identity": {
+    "sample_data": true,
+    "trip_name": "Synthetic Sample Trip",
+    "secret_canary_identity": "SECRET_CANARY_SAMPLE_IDENTITY"
+  },
+  "travelers": [
+    {
+      "display_name": "SECRET_CANARY_SAMPLE_TRAVELER",
+      "future_private_field": "SECRET_CANARY_SAMPLE_FUTURE"
+    }
+  ],
+  "unexpected_private_container": {
+    "nested": [
+      { "token": "SECRET_CANARY_SAMPLE_NESTED" }
+    ]
+  },
+  "sharing": {
+    "schema_version": 1,
+    "identity": {
+      "application_name": "Family Travel Command Center",
+      "short_name": "Family Travel",
+      "share_title": "Synthetic approved overview",
+      "date_label": "Spring 2030",
+      "summary": "Only these synthetic leaves are approved."
+    },
+    "days": [
+      { "date": "2030-04-01", "place_label": "Coast", "summary": "Arrival day." }
+    ],
+    "transport": [
+      { "date": "2030-04-01", "route_label": "Home → Coast", "service_label": "Ground transfer", "status": "Planned" }
+    ],
+    "ports": [],
+    "tours": []
+  }
+}

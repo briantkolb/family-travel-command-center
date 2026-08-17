@@ -40,12 +40,10 @@ test("API validation and SQLite state remain reliable across clients and restart
     assert.deepEqual(result.value, { status: "ok" });
 
     result = await jsonRequest(running.origin, "/api/state?share=1");
-    assert.equal(result.response.status, 200);
-    assert.deepEqual(Object.keys(result.value).sort(), [
-      "checks",
-      "hasChecklistState",
-      "syncedAt",
-    ]);
+    assert.equal(result.response.status, 403);
+    assert.deepEqual(result.value, {
+      error: "Private state is unavailable in share-safe mode.",
+    });
 
     result = await jsonRequest(running.origin, "/api/trip?share=1");
     assert.equal(result.response.status, 404);
@@ -60,6 +58,22 @@ test("API validation and SQLite state remain reliable across clients and restart
 
     result = await jsonRequest(
       running.origin,
+      "/api/checklist?share=1",
+      "PUT",
+      { id: "prep:share:blocked", checked: true },
+    );
+    assert.equal(result.response.status, 403);
+
+    result = await jsonRequest(
+      running.origin,
+      "/api/checklist/import?share=1",
+      "POST",
+      { checks: { "prep:share:blocked": true } },
+    );
+    assert.equal(result.response.status, 403);
+
+    result = await jsonRequest(
+      running.origin,
       "/api/pending?share=1",
       "PUT",
       {
@@ -68,6 +82,33 @@ test("API validation and SQLite state remain reliable across clients and restart
       },
     );
     assert.equal(result.response.status, 403);
+
+    let rawResponse = await fetch(`${running.origin}/api/checklist`, {
+      method: "PUT",
+      body: JSON.stringify({ id: "prep:missing-content-type", checked: true }),
+    });
+    assert.equal(rawResponse.status, 415);
+
+    rawResponse = await fetch(`${running.origin}/api/checklist`, {
+      method: "PUT",
+      headers: { "content-type": "application/json", origin: "https://attacker.invalid" },
+      body: JSON.stringify({ id: "prep:cross-origin", checked: true }),
+    });
+    assert.equal(rawResponse.status, 403);
+
+    rawResponse = await fetch(`${running.origin}/api/checklist`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: "{not-json",
+    });
+    assert.equal(rawResponse.status, 400);
+
+    rawResponse = await fetch(`${running.origin}/api/checklist`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: "prep:too-large", checked: true, padding: "x".repeat(128_100) }),
+    });
+    assert.equal(rawResponse.status, 413);
 
     result = await jsonRequest(running.origin, "/api/checklist/import", "POST", {
       checks: {

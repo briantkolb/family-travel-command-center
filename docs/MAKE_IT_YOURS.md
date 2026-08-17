@@ -8,7 +8,9 @@ Install Node.js 22.13 or newer, download the repository, and run:
 
 ```text
 npm install
-npm run dev
+npm run regenerate
+npm run build:prepared
+npm start
 ```
 
 Open `http://127.0.0.1:3000` and confirm Northstar Isles works before editing anything. Stop the server with `Ctrl+C`.
@@ -62,6 +64,12 @@ At the top of `data/northstar-isles-trip.json`, update `identity`:
 ```
 
 Keep `application_name` and `short_name` generic unless you intentionally want to rebrand the application. Set `sample_data` to `false` once the canonical file contains your own information.
+
+## 1A. Explicit share-safe profile
+
+The top-level `sharing` object is separate from private `identity` and itinerary data. Review every leaf as if it will be shown to every share-link recipient. It must exactly follow [`SHARE_SAFE.md`](SHARE_SAFE.md).
+
+Do not copy entire private records into `sharing`. If you are not ready to approve a share profile, remove it or leave it invalid: generation then fails closed to “No details approved for sharing.” Setting `identity.sample_data` to `false` does not relax this validator.
 
 ## 2. Travelers
 
@@ -206,7 +214,7 @@ Never put these into the canonical data:
 - Full payment-card data
 - Highly sensitive identity or medical documents
 
-The share-safe view omits selected categories, but it does not prevent someone with unrestricted server access from opening the full view.
+The share-safe view contains only the explicitly reviewed ShareTripV1 leaves and is read-only, but it does not prevent someone with unrestricted server access from opening the full view.
 
 ## 13. Packing lists
 
@@ -235,7 +243,9 @@ Then run:
 npm run dev
 ```
 
-Open `http://127.0.0.1:3000` and inspect every relevant tab. Also open `http://127.0.0.1:3000/?share=1` and confirm that its reduced view matches your expectations.
+`npm run dev` is a loopback-only developer convenience. Never bind it to a LAN or hosted interface with real trip data. For ordinary or network use, run Start Here or `npm run build && npm start`.
+
+Open `http://127.0.0.1:3000` and inspect every relevant tab. Also use a fresh browser context to open `http://127.0.0.1:3000/?share=1` directly and confirm that its explicitly approved view matches your expectations.
 
 ## Human review before travel
 

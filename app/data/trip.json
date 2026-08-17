@@ -1,6 +1,7 @@
 {
   "identity": {
     "sample_data": true,
+    "private_validation_canary": "SECRET_CANARY_CANONICAL_PRIVATE_ONLY",
     "application_name": "Family Travel Command Center",
     "short_name": "Family Travel",
     "trip_name": "Northstar Isles Coastal Circuit",
@@ -15,6 +16,131 @@
     ],
     "hero_description": "A fictional coastal itinerary demonstrating travel coordination, shared checklists, offline access, and clearly inert booking examples.",
     "footer_note": "Fictional demonstration data • never store real secrets in this reference app"
+  },
+  "sharing": {
+    "schema_version": 1,
+    "identity": {
+      "application_name": "Family Travel Command Center",
+      "short_name": "Family Travel",
+      "share_title": "Northstar Isles coastal highlights",
+      "date_label": "April 6–13, 2027",
+      "summary": "A deliberately limited, fictional overview approved for friends-and-family sharing. It excludes traveler identities, times, bookings, lodging, packing, contacts, access details, and private state."
+    },
+    "days": [
+      {
+        "date": "2027-04-06",
+        "place_label": "Harbor Ridge → Ember Harbor",
+        "summary": "Arrival and orientation day."
+      },
+      {
+        "date": "2027-04-07",
+        "place_label": "Gullrock Island",
+        "summary": "Coastal travel and island history."
+      },
+      {
+        "date": "2027-04-08",
+        "place_label": "Gullrock Landing → Coastal vessel",
+        "summary": "Transfer and embarkation day."
+      },
+      {
+        "date": "2027-04-09",
+        "place_label": "Cedar Sound",
+        "summary": "Fictional shore and tidepool activities."
+      },
+      {
+        "date": "2027-04-10",
+        "place_label": "Kestrel Bay",
+        "summary": "Arrival and sheltered-water activity."
+      },
+      {
+        "date": "2027-04-11",
+        "place_label": "Kestrel Bay",
+        "summary": "Flexible field day."
+      },
+      {
+        "date": "2027-04-12",
+        "place_label": "Kestrel Bay → Ember Harbor",
+        "summary": "Return travel and public market visit."
+      },
+      {
+        "date": "2027-04-13",
+        "place_label": "Ember Harbor → Harbor Ridge",
+        "summary": "Return-home travel day."
+      }
+    ],
+    "transport": [
+      {
+        "date": "2027-04-06",
+        "route_label": "Harbor Ridge → Ember Harbor",
+        "service_label": "Air and ground transfer",
+        "status": "Planned"
+      },
+      {
+        "date": "2027-04-07",
+        "route_label": "Ember Harbor → Gullrock Island",
+        "service_label": "Coastal rail",
+        "status": "Planned"
+      },
+      {
+        "date": "2027-04-08",
+        "route_label": "Gullrock Island → Coastal vessel",
+        "service_label": "Island connection",
+        "status": "Planned"
+      },
+      {
+        "date": "2027-04-12",
+        "route_label": "Kestrel Bay → Ember Harbor",
+        "service_label": "Air and ground transfer",
+        "status": "Planned"
+      },
+      {
+        "date": "2027-04-13",
+        "route_label": "Ember Harbor → Harbor Ridge",
+        "service_label": "Ground and air transfer",
+        "status": "Planned"
+      }
+    ],
+    "ports": [
+      {
+        "date": "2027-04-08",
+        "port": "Gullrock Landing"
+      },
+      {
+        "date": "2027-04-09",
+        "port": "Cedar Sound"
+      },
+      {
+        "date": "2027-04-10",
+        "port": "Kestrel Bay"
+      }
+    ],
+    "tours": [
+      {
+        "date": "2027-04-07",
+        "name": "Gullrock Lighthouse History Walk",
+        "status": "Planned"
+      },
+      {
+        "date": "2027-04-09",
+        "name": "Cedar Sound Tidepool Field Session",
+        "status": "Planned"
+      },
+      {
+        "date": "2027-04-10",
+        "name": "Kestrel Bay Sheltered-Water Kayak Lesson",
+        "status": "Planned"
+      },
+      {
+        "date": "2027-04-11",
+        "name": "Northstar Night-Sky Observatory Visit",
+        "status": "Planned"
+      },
+      {
+        "date": "2027-04-12",
+        "name": "Ember Harbor Public Market Circuit",
+        "status": "No reservation required"
+      }
+    ]
   },
   "travelers": [
     {

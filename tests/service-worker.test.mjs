@@ -34,7 +34,7 @@ test("service-worker activation deletes only obsolete app-owned caches", async (
       },
       open: async () => ({ addAll: async () => {}, put: async () => {} }),
       match: async (request) => {
-        cacheMatches.push(request.url);
+        cacheMatches.push(typeof request === "string" ? request : request.url);
         return undefined;
       },
     },
@@ -53,6 +53,7 @@ test("service-worker activation deletes only obsolete app-owned caches", async (
     "travel-command-center-reference-shell-v1",
     "travel-command-center-reference-shell-v2",
     "travel-command-center-reference-shell-v3",
+    "travel-command-center-reference-shell-v4",
   ]);
 
   let responded = false;
@@ -82,6 +83,7 @@ test("service-worker activation deletes only obsolete app-owned caches", async (
   await shareNavigation;
   assert.deepEqual(fetched, ["http://127.0.0.1:3000/?share=1"]);
   assert.deepEqual(cacheMatches, [], "navigations are network-first");
-  assert.match(source, /cache\.put\(request, copy\)/);
-  assert.match(source, /isShareSafe \? Response\.error\(\)/);
+  assert.match(source, /cache\.put\(navigationKey, copy\)/);
+  assert.match(source, /isShareSafe \? "\/\?share=1" : "\/"/);
+  assert.match(source, /cached \|\| Response\.error\(\)/);
 });

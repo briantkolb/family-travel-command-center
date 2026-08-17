@@ -3,7 +3,13 @@ import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { validDemoAssignment } from "../lib/reference-policy.mjs";
-import { toShareSafeTrip } from "../lib/share-safe-trip.mjs";
+import {
+  diagnoseShareProfile,
+  formatShareProfileDiagnostic,
+  isShareTripV1,
+  shareTripV1Keys,
+  toShareSafeTrip,
+} from "../lib/share-safe-trip.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const read = (file) => readFile(path.join(root, file), "utf8");
@@ -50,17 +56,47 @@ test("share-safe seed structurally omits private-detail categories", async () =>
   for (const value of excluded) {
     assert.equal(serialized.includes(value), false, value);
   }
-  assert.deepEqual(shareSafe.lodging, []);
-  assert.deepEqual(shareSafe.cruise.staterooms, []);
-  assert.deepEqual(shareSafe.connectivity.profiles, []);
-  assert.deepEqual(shareSafe.safety_accessibility.traveler_preferences, []);
-  assert.deepEqual(shareSafe.pending_updates, []);
-  assert.deepEqual(shareSafe.preparation_groups, {});
-  assert.deepEqual(shareSafe.demo_vault_groups, []);
-  for (const flight of shareSafe.flights) {
-    assert.equal("confirmation" in flight, false);
-    assert.equal("seats" in flight, false);
-  }
+  assert.equal(isShareTripV1(shareSafe), true);
+  assert.deepEqual(Object.keys(shareSafe).sort(), [...shareTripV1Keys.root].sort());
+  assert.equal("travelers" in shareSafe, false);
+  assert.equal("packing" in shareSafe, false);
+  assert.equal("lodging" in shareSafe, false);
+  assert.equal("dining" in shareSafe, false);
+  assert.equal("flights" in shareSafe, false);
+  assert.equal("preparation_groups" in shareSafe, false);
+  assert.equal("connectivity" in shareSafe, false);
+});
+
+test("sharing-profile diagnostics distinguish valid, absent, and invalid input", async () => {
+  const canonical = JSON.parse(await read("data/northstar-isles-trip.json"));
+  const valid = diagnoseShareProfile(canonical);
+  assert.equal(valid.status, "valid");
+  assert.deepEqual(valid.problems, []);
+  assert.deepEqual(valid.counts, {
+    days: canonical.sharing.days.length,
+    transport: canonical.sharing.transport.length,
+    ports: canonical.sharing.ports.length,
+    tours: canonical.sharing.tours.length,
+  });
+  assert.match(formatShareProfileDiagnostic(canonical), /^sharing=accepted:/);
+  assert.match(formatShareProfileDiagnostic(canonical), /days=\d+ transport=\d+ ports=\d+ tours=\d+/);
+
+  const absent = structuredClone(canonical);
+  delete absent.sharing;
+  assert.equal(diagnoseShareProfile(absent).status, "absent");
+  assert.match(formatShareProfileDiagnostic(absent), /sharing=disabled/i);
+  assert.match(formatShareProfileDiagnostic(absent), /no details are approved/i);
+
+  const invalid = structuredClone(canonical);
+  invalid.sharing.days[0].summary_typo = invalid.sharing.days[0].summary;
+  delete invalid.sharing.days[0].summary;
+  const invalidDiagnostic = diagnoseShareProfile(invalid);
+  assert.equal(invalidDiagnostic.status, "invalid");
+  assert.ok(invalidDiagnostic.problems.includes("sharing.days[0].summary is required"));
+  assert.ok(invalidDiagnostic.problems.includes("sharing.days[0].summary_typo is not permitted"));
+  assert.match(formatShareProfileDiagnostic(invalid), /^WARNING sharing=invalid:/);
+  assert.match(formatShareProfileDiagnostic(invalid), /share mode will fail closed/i);
+  assert.deepEqual(toShareSafeTrip(invalid).days, []);
 });
 
 test("packing is generated only for fictional travelers with new stable IDs", async () => {
@@ -139,21 +175,22 @@ test("sensitive features contain only generalized guidance and inert examples", 
 
 test("safe contacts and booking formats hold across canonical data", async () => {
   const trip = JSON.parse(await read("data/northstar-isles-trip.json"));
-  if (!trip.identity.sample_data) return;
-  const bookings = [
-    ...trip.flights.map((record) => record.confirmation),
-    ...trip.lodging.map((record) => record.confirmation),
-    ...trip.cruise.staterooms.map((record) => record.reservation),
-    ...trip.tours.flatMap((record) =>
-      [record.booking_reference, record.confirmation].filter(Boolean),
-    ),
-  ];
-  for (const value of bookings) assert.match(value, /^DEMO-/);
-  for (const phone of [
-    ...trip.lodging.map((record) => record.host_phone),
-    ...trip.tours.map((record) => record.phone).filter(Boolean),
-  ]) {
-    assert.match(phone, /^\+1 202-555-01\d{2}$/);
+  if (trip.identity.sample_data) {
+    const bookings = [
+      ...trip.flights.map((record) => record.confirmation),
+      ...trip.lodging.map((record) => record.confirmation),
+      ...trip.cruise.staterooms.map((record) => record.reservation),
+      ...trip.tours.flatMap((record) =>
+        [record.booking_reference, record.confirmation].filter(Boolean),
+      ),
+    ];
+    for (const value of bookings) assert.match(value, /^DEMO-/);
+    for (const phone of [
+      ...trip.lodging.map((record) => record.host_phone),
+      ...trip.tours.map((record) => record.phone).filter(Boolean),
+    ]) {
+      assert.match(phone, /^\+1 202-555-01\d{2}$/);
+    }
   }
 });
 
@@ -164,9 +201,11 @@ test("application identity and mutable namespaces use the reference boundary", a
   const compose = await read("docker-compose.vps.yml");
   assert.match(page, /travel-reference-state-v1/);
   assert.match(page, /travel-reference-queue-v1/);
-  assert.match(page, /travel-reference-share-state-v1/);
+  assert.match(page, /travel-reference-private-data-v1/);
+  assert.doesNotMatch(page, /travel-reference-share-(?:state|queue)-v1/);
   assert.match(page, /\.\/data\/trip-share\.json/);
   assert.doesNotMatch(page, /\.\/data\/trip\.json/);
+  assert.doesNotMatch(page, /\.\/data\/packing\.json/);
   assert.doesNotMatch(
     await read("app/globals.css"),
     /\.share-mode\s+\.private-field/,
@@ -189,8 +228,8 @@ test("PWA uses a neutral identity and only neutral icon references", async () =>
   ]);
   const serviceWorker = await read("public/sw.js");
   assert.match(serviceWorker, /travel-command-center-reference-/);
-  assert.match(serviceWorker, /shell-v4/);
-  assert.match(serviceWorker, /manifest\.webmanifest\?v=2/);
+  assert.match(serviceWorker, /shell-v5/);
+  assert.match(serviceWorker, /manifest\.webmanifest\?v=3/);
   assert.match(serviceWorker, /favicon\.svg/);
   assert.match(serviceWorker, /maskable-icon-512\.png/);
   assert.match(serviceWorker, /startsWith\(CACHE_PREFIX\)/);
@@ -225,8 +264,10 @@ test("first-run launchers are local-only, version-aware, and non-deploying", asy
     assert.match(launcher, /process\.versions\.node/);
     assert.match(launcher, /22\.13/);
     assert.match(launcher, /https:\/\/nodejs\.org\/en\/download/);
-    assert.match(launcher, /npm install --no-audit --no-fund/);
+    assert.match(launcher, /npm install/);
+    assert.doesNotMatch(launcher, /--no-audit/);
     assert.match(launcher, /npm run regenerate/);
+    assert.match(launcher, /npm run build:prepared/);
     assert.match(launcher, /scripts[\\/]start-here\.mjs/);
   }
 
@@ -234,6 +275,7 @@ test("first-run launchers are local-only, version-aware, and non-deploying", asy
   assert.match(helper, /HOST: "127\.0\.0\.1"/);
   assert.match(helper, /APP_INTERNAL_HOST: "127\.0\.0\.1"/);
   assert.match(helper, /Opening .*default browser/);
+  assert.doesNotMatch(helper, /server\.mjs"\), "--dev"/);
   assert.doesNotMatch(helper, /0\.0\.0\.0/);
 
   const launcherSources = `${windows}\n${shell}\n${helper}`;

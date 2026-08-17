@@ -24,18 +24,24 @@ if errorlevel 1 goto npm_missing
 
 echo Node.js %NODE_VERSION% is ready.
 echo.
-echo [1/3] Checking and installing project dependencies...
+echo [1/4] Checking and installing project dependencies...
 echo       Existing current packages will be reused.
-call npm install --no-audit --no-fund
+call npm install
 if errorlevel 1 goto install_failed
 
 echo.
-echo [2/3] Regenerating the app from the two files in the data folder...
+echo [2/4] Regenerating the app from the two files in the data folder...
 call npm run regenerate
 if errorlevel 1 goto regenerate_failed
 
 echo.
-echo [3/3] Starting the private local development server...
+echo [3/4] Building the private production app...
+echo       This may take a minute on the first run.
+call npm run build:prepared
+if errorlevel 1 goto build_failed
+
+echo.
+echo [4/4] Starting the private local production server...
 echo       Keep this window open while using the app.
 echo       Press Ctrl+C here when you are finished.
 echo       If Windows asks "Terminate batch job?", enter Y.
@@ -76,6 +82,12 @@ goto pause_error
 echo.
 echo ERROR: Your trip files could not be regenerated.
 echo Check the messages above. The JSON or packing Markdown may need correction.
+goto pause_error
+
+:build_failed
+echo.
+echo ERROR: The private production app could not be built.
+echo Check the messages above, then run this file again.
 goto pause_error
 
 :server_failed

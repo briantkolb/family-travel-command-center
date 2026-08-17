@@ -1,7 +1,7 @@
 {
   "name": "Family Travel Command Center",
   "short_name": "Family Travel",
-  "description": "Fictional reference data in a field-tested travel coordination implementation with no built-in authentication or encryption",
+  "description": "Private-first travel coordination with no built-in authentication or encryption",
   "id": "/",
   "start_url": "/",
   "scope": "/",

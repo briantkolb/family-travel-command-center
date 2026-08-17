@@ -32,22 +32,30 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 
 printf '%s\n\n' "Node.js $NODE_VERSION is ready."
-printf '%s\n' "[1/3] Checking and installing project dependencies..."
+printf '%s\n' "[1/4] Checking and installing project dependencies..."
 printf '%s\n' "      Existing current packages will be reused."
-if ! npm install --no-audit --no-fund; then
+if ! npm install; then
   printf '\n%s\n' "ERROR: Project dependencies could not be installed."
   printf '%s\n' "Check your internet connection and the messages above, then run this file again."
   exit 1
 fi
 
-printf '\n%s\n' "[2/3] Regenerating the app from the two files in the data folder..."
+printf '\n%s\n' "[2/4] Regenerating the app from the two files in the data folder..."
 if ! npm run regenerate; then
   printf '\n%s\n' "ERROR: Your trip files could not be regenerated."
   printf '%s\n' "Check the messages above. The JSON or packing Markdown may need correction."
   exit 1
 fi
 
-printf '\n%s\n' "[3/3] Starting the private local development server..."
+printf '\n%s\n' "[3/4] Building the private production app..."
+printf '%s\n' "      This may take a minute on the first run."
+if ! npm run build:prepared; then
+  printf '\n%s\n' "ERROR: The private production app could not be built."
+  printf '%s\n' "Check the messages above, then run this file again."
+  exit 1
+fi
+
+printf '\n%s\n' "[4/4] Starting the private local production server..."
 printf '%s\n' "      Keep this terminal open while using the app."
 printf '%s\n\n' "      Press Ctrl+C here when you are finished."
 

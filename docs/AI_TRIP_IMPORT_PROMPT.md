@@ -70,6 +70,9 @@ Security rules:
 - Flag highly sensitive identity, medical, or access information for separate handling instead of adding it automatically.
 - Treat confirmation numbers, addresses, phone numbers, room assignments, and precise movements as potentially sensitive.
 - Remember that this application has no built-in authentication or encryption and that share-safe mode is not authorization.
+- Treat packing as private. Never map packing data into the share profile.
+- Build the top-level `sharing` object only from the exact ShareTripV1 contract in docs/SHARE_SAFE.md and only after I separately approve every proposed retained leaf. Never derive it by copying private containers.
+- If I do not explicitly approve a valid share profile, omit `sharing` so the generated share view fails closed to “No details approved for sharing.”
 - If the intended hosting/privacy model is unclear, stop before importing sensitive values and ask me to choose local/private use or protected hosting.
 
 Editing rules:
@@ -85,6 +88,7 @@ Before editing, give me:
 2. The travelers and trip span you identified.
 3. A proposed transportation/lodging/activity outline.
 4. A list of conflicts, unknowns, and sensitive values that need my decision.
+5. A separate proposed ShareTripV1 profile, or a recommendation to leave sharing disabled. Do not include traveler names, packing, dining, flight numbers, minute-level times/movement, lodging, contacts, addresses, booking/access data, preparation, accessibility, or state.
 
 After I approve that inventory, make the canonical-data edits and run:
 - npm run regenerate
@@ -124,6 +128,7 @@ Before accepting an AI-generated trip:
 - [ ] Highly sensitive health and identity data remains outside this browser-delivered application.
 - [ ] Packing headings exactly match traveler display names.
 - [ ] `identity.sample_data` is `false`.
+- [ ] Every leaf in `sharing` was separately approved and exactly matches docs/SHARE_SAFE.md, or sharing intentionally fails closed.
 - [ ] `npm run check` passes.
 - [ ] Both the full view and `?share=1` view were inspected.
 - [ ] The final result was compared against original airline, lodging, operator, and reservation records.

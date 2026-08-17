@@ -4,7 +4,7 @@ import process from "node:process";
 
 const root = path.resolve(import.meta.dirname, "..");
 const appUrl = "http://127.0.0.1:3000";
-const server = spawn(process.execPath, [path.join(root, "server.mjs"), "--dev"], {
+const server = spawn(process.execPath, [path.join(root, "server.mjs")], {
   cwd: root,
   env: {
     ...process.env,
@@ -31,8 +31,9 @@ function delay(milliseconds) {
 }
 
 async function waitUntilReady() {
+  const startedAt = Date.now();
   await delay(300);
-  for (let attempt = 0; attempt < 120; attempt += 1) {
+  for (let attempt = 0; attempt < 300; attempt += 1) {
     if (serverExit) throw new Error("The local server exited before it was ready.");
     try {
       const response = await fetch(appUrl, {
@@ -42,11 +43,14 @@ async function waitUntilReady() {
       const html = await response.text();
       if (response.ok && html.includes("Family Travel Command Center")) return;
     } catch {
-      // The server normally needs a few seconds for its first compilation.
+      // The production process normally needs a few seconds to initialize.
+    }
+    if (attempt > 0 && attempt % 30 === 0) {
+      console.log(`Still starting... ${Math.round((Date.now() - startedAt) / 1000)} seconds elapsed.`);
     }
     await delay(500);
   }
-  throw new Error("The local server did not become ready within 60 seconds.");
+  throw new Error("The local server did not become ready within 150 seconds.");
 }
 
 function openBrowser() {

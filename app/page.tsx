@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import tripSeed from "./data/trip-share.json";
-import packingSeed from "./data/packing.json";
 
 type Tab =
   | "today"
@@ -60,13 +59,73 @@ type TripData = {
   preparation_groups: Record<string, string[]>;
   demo_vault_groups: LooseRecord[];
 };
-const initialTrip = tripSeed as unknown as TripData;
-const packing = packingSeed as Record<PackingPerson, PackingItem[]>;
-const packingPeople = Object.keys(packing) as PackingPerson[];
+type ShareTripV1 = {
+  schema_version: 1;
+  identity: {
+    application_name: string;
+    short_name: string;
+    share_title: string;
+    date_label: string;
+    summary: string;
+  };
+  days: { date: string; place_label: string; summary: string }[];
+  transport: {
+    date: string;
+    route_label: string;
+    service_label: string;
+    status: string;
+  }[];
+  ports: { date: string; port: string }[];
+  tours: { date: string; name: string; status: string }[];
+};
+type PrivateData = {
+  trip: TripData;
+  packing: Record<PackingPerson, PackingItem[]>;
+};
+type PrivateDataCache = PrivateData & { version: 1 };
+type BootstrapState =
+  | { mode: "resolving" }
+  | { mode: "share" }
+  | { mode: "private-loading" }
+  | { mode: "private-ready"; data: PrivateData }
+  | { mode: "private-unavailable" };
+const initialShareTrip = tripSeed as ShareTripV1;
 const CACHE_KEY = "travel-reference-state-v1";
 const QUEUE_KEY = "travel-reference-queue-v1";
-const SHARE_CACHE_KEY = "travel-reference-share-state-v1";
-const SHARE_QUEUE_KEY = "travel-reference-share-queue-v1";
+const PRIVATE_DATA_CACHE_KEY = "travel-reference-private-data-v1";
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function readPrivateDataCache(): PrivateData | null {
+  try {
+    const cached = JSON.parse(localStorage.getItem(PRIVATE_DATA_CACHE_KEY) || "null") as unknown;
+    if (
+      !isObject(cached) ||
+      cached.version !== 1 ||
+      !isObject(cached.trip) ||
+      !isObject(cached.packing)
+    ) {
+      return null;
+    }
+    return {
+      trip: cached.trip as TripData,
+      packing: cached.packing as Record<PackingPerson, PackingItem[]>,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writePrivateDataCache(data: PrivateData) {
+  try {
+    const cached: PrivateDataCache = { version: 1, ...data };
+    localStorage.setItem(PRIVATE_DATA_CACHE_KEY, JSON.stringify(cached));
+  } catch {
+    // A storage quota or browser policy failure must not hide fresh private data.
+  }
+}
 
 function slug(value: string) {
   return value
@@ -93,44 +152,25 @@ function clock(value?: string) {
   const hours = Number(match[1]);
   return `${hours % 12 || 12}:${match[2]} ${hours >= 12 ? "PM" : "AM"}`;
 }
-function getQueue(shareMode: boolean): QueueItem[] {
+function getQueue(): QueueItem[] {
   try {
-    const queue = JSON.parse(
-      localStorage.getItem(shareMode ? SHARE_QUEUE_KEY : QUEUE_KEY) || "[]",
-    );
-    return shareMode
-      ? queue.filter((item: QueueItem) => item.kind === "checklist")
-      : queue;
+    return JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
   } catch {
     return [];
   }
 }
-function setQueue(queue: QueueItem[], shareMode: boolean) {
-  localStorage.setItem(
-    shareMode ? SHARE_QUEUE_KEY : QUEUE_KEY,
-    JSON.stringify(queue),
-  );
+function setQueue(queue: QueueItem[]) {
+  localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
 }
-function cachedState(shareMode: boolean): SharedState {
+function cachedState(): SharedState {
   try {
-    const value = JSON.parse(
-      localStorage.getItem(shareMode ? SHARE_CACHE_KEY : CACHE_KEY) || "{}",
-    );
-    return shareMode
-      ? {
-          checks: value.checks || {},
-          assignments: {},
-          pending: {},
-          syncedAt: value.syncedAt,
-        }
-      : value;
+    return JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
   } catch {
     return { checks: {}, assignments: {}, pending: {} };
   }
 }
 
-function useSharedState(resolvedShareMode: boolean | null) {
-  const shareMode = resolvedShareMode !== false;
+function useSharedState() {
   const [state, setState] = useState<SharedState>({
     checks: {},
     assignments: {},
@@ -141,15 +181,9 @@ function useSharedState(resolvedShareMode: boolean | null) {
   const [queueSize, setQueueSize] = useState(0);
 
   const remember = useCallback((next: SharedState) => {
-    const stored = shareMode
-      ? { ...next, assignments: {}, pending: {} }
-      : next;
-    setState(stored);
-    localStorage.setItem(
-      shareMode ? SHARE_CACHE_KEY : CACHE_KEY,
-      JSON.stringify(stored),
-    );
-  }, [shareMode]);
+    setState(next);
+    localStorage.setItem(CACHE_KEY, JSON.stringify(next));
+  }, []);
 
   const request = useCallback(async (item: QueueItem) => {
     const route =
@@ -158,16 +192,16 @@ function useSharedState(resolvedShareMode: boolean | null) {
         : item.kind === "assignment"
           ? "/api/esim-assignment"
           : "/api/pending";
-    const response = await fetch(`${route}${shareMode ? "?share=1" : ""}`, {
+    const response = await fetch(route, {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(item.payload),
     });
     if (!response.ok) throw new Error("The server did not save this change.");
-  }, [shareMode]);
+  }, []);
 
   const retry = useCallback(async () => {
-    const queue = getQueue(shareMode);
+    const queue = getQueue();
     if (!queue.length) {
       setError("");
       setQueueSize(0);
@@ -181,37 +215,31 @@ function useSharedState(resolvedShareMode: boolean | null) {
         remaining.push(item);
       }
     }
-    setQueue(remaining, shareMode);
+    setQueue(remaining);
     setQueueSize(remaining.length);
     setError(
       remaining.length
         ? `${remaining.length} change${remaining.length === 1 ? "" : "s"} still waiting to sync.`
         : "",
     );
-  }, [request, shareMode]);
+  }, [request]);
 
   const refresh = useCallback(
     async (quiet = false) => {
       try {
-        const response = await fetch(
-          `/api/state${shareMode ? "?share=1" : ""}`,
-          { cache: "no-store" },
-        );
+        const response = await fetch("/api/state", { cache: "no-store" });
         if (!response.ok) throw new Error("Shared state unavailable");
         let server = await response.json();
-        const local = cachedState(shareMode);
+        const local = cachedState();
         const importable = Object.fromEntries(
           Object.entries(local.checks || {}).filter(([id]) => id.includes(":")),
         );
         if (!server.hasChecklistState && Object.keys(importable).length) {
-          const imported = await fetch(
-            `/api/checklist/import${shareMode ? "?share=1" : ""}`,
-            {
+          const imported = await fetch("/api/checklist/import", {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ checks: importable }),
-            },
-          );
+          });
           if (imported.ok) server = await imported.json();
         }
         remember({
@@ -231,21 +259,19 @@ function useSharedState(resolvedShareMode: boolean | null) {
         setLoading(false);
       }
     },
-    [remember, retry, shareMode],
+    [remember, retry],
   );
 
   useEffect(() => {
-    if (resolvedShareMode === null) return;
-
     const kickoff = window.setTimeout(() => {
-      const local = cachedState(shareMode);
+      const local = cachedState();
       setState({
         checks: local.checks || {},
         assignments: local.assignments || {},
         pending: local.pending || {},
         syncedAt: local.syncedAt,
       });
-      setQueueSize(getQueue(shareMode).length);
+      setQueueSize(getQueue().length);
       setError("");
       refresh();
     }, 0);
@@ -259,16 +285,13 @@ function useSharedState(resolvedShareMode: boolean | null) {
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [refresh, resolvedShareMode, shareMode]);
+  }, [refresh]);
 
   const push = useCallback(
     async (item: QueueItem, optimistic: (old: SharedState) => SharedState) => {
       setState((old) => {
         const next = optimistic(old);
-        localStorage.setItem(
-          shareMode ? SHARE_CACHE_KEY : CACHE_KEY,
-          JSON.stringify(next),
-        );
+        localStorage.setItem(CACHE_KEY, JSON.stringify(next));
         return next;
       });
       try {
@@ -277,7 +300,7 @@ function useSharedState(resolvedShareMode: boolean | null) {
         setState((old) => ({ ...old, syncedAt: new Date().toISOString() }));
       } catch {
         const queue = [
-          ...getQueue(shareMode).filter(
+          ...getQueue().filter(
             (queued) =>
               !(
                 queued.kind === item.kind &&
@@ -286,14 +309,14 @@ function useSharedState(resolvedShareMode: boolean | null) {
           ),
           item,
         ];
-        setQueue(queue, shareMode);
+        setQueue(queue);
         setQueueSize(queue.length);
         setError(
           "A change is saved on this device but has not reached the reference server yet.",
         );
       }
     },
-    [request, shareMode],
+    [request],
   );
 
   const setCheck = (id: string, checked: boolean) =>
@@ -643,19 +666,220 @@ function PendingEditor({
   );
 }
 
+function ShareView({ trip }: { trip: ShareTripV1 }) {
+  const hasDetails =
+    trip.days.length + trip.transport.length + trip.ports.length + trip.tours.length > 0;
+
+  return (
+    <main className="share-mode" data-testid="share-safe-view">
+      <header className="topbar">
+        <div className="brand" aria-label={trip.identity.application_name}>
+          <span>FT</span>
+          <div>
+            <strong>{trip.identity.short_name}</strong>
+            <small>Read-only share-safe view</small>
+          </div>
+        </div>
+        <div className="privacy-toggle" aria-label="Share-safe mode">
+          Share-safe • read only
+        </div>
+      </header>
+      <div className="shell share-shell">
+        <section>
+          <div className="hero">
+            <span className="eyebrow">{trip.identity.date_label || "Limited trip overview"}</span>
+            <h1>{trip.identity.share_title}</h1>
+            <p>{trip.identity.summary}</p>
+            <div className="privacy-banner">
+              This view contains only details explicitly approved in the canonical sharing profile.
+              It has no packing lists, traveler identities, bookings, private state, or editing controls.
+            </div>
+          </div>
+        </section>
+
+        {!hasDetails && (
+          <section className="page">
+            <div className="empty-state">No details approved for sharing.</div>
+          </section>
+        )}
+
+        {trip.days.length > 0 && (
+          <section className="page" aria-labelledby="share-days-title">
+            <PageIntro
+              kicker="Approved overview"
+              title="Trip outline"
+              text="Dates, broad place labels, and summaries only. Minute-level movement is omitted."
+            />
+            <div className="card-grid" id="share-days-title">
+              {trip.days.map((day) => (
+                <article className="card" key={`${day.date}:${day.place_label}`}>
+                  <span className="kicker">{readableDate(day.date)}</span>
+                  <h2>{day.place_label}</h2>
+                  <p>{day.summary}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {trip.transport.length > 0 && (
+          <section className="page">
+            <PageIntro
+              kicker="Broad routing only"
+              title="Transportation outline"
+              text="Flight numbers, exact times, tickets, bookings, seats, and addresses are omitted."
+            />
+            <div className="card-grid">
+              {trip.transport.map((record) => (
+                <article className="card" key={`${record.date}:${record.route_label}`}>
+                  <span className="kicker">{readableDate(record.date)}</span>
+                  <h2>{record.route_label}</h2>
+                  <p>{record.service_label}</p>
+                  <small>{record.status}</small>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {trip.ports.length > 0 && (
+          <section className="page">
+            <PageIntro
+              kicker="Approved place labels"
+              title="Ports"
+              text="Arrival and departure times are intentionally omitted."
+            />
+            <div className="card-grid">
+              {trip.ports.map((record) => (
+                <article className="card mini" key={`${record.date}:${record.port}`}>
+                  <span>{readableDate(record.date)}</span>
+                  <strong>{record.port}</strong>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {trip.tours.length > 0 && (
+          <section className="page">
+            <PageIntro
+              kicker="Approved activity names"
+              title="Activities"
+              text="Providers, times, contacts, traveler lists, and booking details are omitted."
+            />
+            <div className="card-grid">
+              {trip.tours.map((record) => (
+                <article className="card" key={`${record.date}:${record.name}`}>
+                  <span className="kicker">{readableDate(record.date)}</span>
+                  <h2>{record.name}</h2>
+                  <p>{record.status}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+      <footer>
+        <span>{trip.identity.application_name}</span>
+        <span>Explicitly approved ShareTripV1 data • read only</span>
+      </footer>
+    </main>
+  );
+}
+
 export default function Home() {
+  const [bootstrap, setBootstrap] = useState<BootstrapState>({ mode: "resolving" });
+  const [retry, setRetry] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    const resolveMode = window.setTimeout(() => {
+      if (!active) return;
+      if (new URLSearchParams(window.location.search).get("share") === "1") {
+        setBootstrap({ mode: "share" });
+        return;
+      }
+
+      setBootstrap({ mode: "private-loading" });
+      void Promise.all([
+        fetch("/api/trip", { cache: "no-store" }),
+        fetch("/api/packing", { cache: "no-store" }),
+      ])
+        .then(async ([tripResponse, packingResponse]) => {
+          if (!tripResponse.ok || !packingResponse.ok) {
+            throw new Error("Private trip data unavailable");
+          }
+          const data: PrivateData = {
+            trip: (await tripResponse.json()) as TripData,
+            packing: (await packingResponse.json()) as Record<PackingPerson, PackingItem[]>,
+          };
+          writePrivateDataCache(data);
+          if (active) setBootstrap({ mode: "private-ready", data });
+        })
+        .catch(() => {
+          if (!active) return;
+          const cached = readPrivateDataCache();
+          setBootstrap(
+            cached
+              ? { mode: "private-ready", data: cached }
+              : { mode: "private-unavailable" },
+          );
+        });
+    }, 0);
+    return () => {
+      active = false;
+      window.clearTimeout(resolveMode);
+    };
+  }, [retry]);
+
+  if (bootstrap.mode === "share") return <ShareView trip={initialShareTrip} />;
+  if (bootstrap.mode === "private-ready") {
+    return <PrivateHome trip={bootstrap.data.trip} packing={bootstrap.data.packing} />;
+  }
+  if (bootstrap.mode === "private-unavailable") {
+    return (
+      <main className="private-bootstrap" data-testid="private-reconnect-view">
+        <section className="page">
+          <div className="empty-state">
+            <h1>Reconnect to load this trip</h1>
+            <p>
+              Private mode has not saved an offline trip on this device yet. Reconnect, then try
+              again.
+            </p>
+            <button className="primary-button" onClick={() => setRetry((value) => value + 1)}>
+              Try again
+            </button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+  return (
+    <main className="private-bootstrap" data-testid="private-loading-view">
+      <section className="page">
+        <div className="empty-state">Loading private trip…</div>
+      </section>
+    </main>
+  );
+}
+
+function PrivateHome({
+  trip,
+  packing,
+}: {
+  trip: TripData;
+  packing: Record<PackingPerson, PackingItem[]>;
+}) {
+  const packingPeople = Object.keys(packing) as PackingPerson[];
   const [tab, setTab] = useState<Tab>("today");
-  const [person, setPerson] = useState<PackingPerson>(packingPeople[0]);
+  const [person, setPerson] = useState<PackingPerson>(packingPeople[0] || "");
   const [packFilter, setPackFilter] = useState<
     "all" | "remaining" | "completed"
   >("all");
   const [query, setQuery] = useState("");
-  const [resolvedShareMode, setResolvedShareMode] = useState<boolean | null>(
-    null,
-  );
-  const shareMode = resolvedShareMode !== false;
-  const [trip, setTrip] = useState<TripData>(initialTrip);
-  const shared = useSharedState(resolvedShareMode);
+  const shareMode = false;
+  const shared = useSharedState();
+  const sampleData = Boolean(trip.identity.sample_data);
 
   const travelers = trip.travelers;
   const travelerNames = travelers.map(
@@ -667,29 +891,17 @@ export default function Home() {
   const prepGroups = trip.preparation_groups;
 
   useEffect(() => {
-    if ("serviceWorker" in navigator)
+    const manifest = document.createElement("link");
+    manifest.rel = "manifest";
+    manifest.href = "/manifest.webmanifest?v=3";
+    manifest.dataset.privatePwa = "true";
+    document.head.append(manifest);
+    if ("serviceWorker" in navigator) {
       navigator.serviceWorker
-        .register("/sw.js?v=4", { updateViaCache: "none" })
+        .register("/sw.js?v=5", { updateViaCache: "none" })
         .catch(() => undefined);
-
-    const resolveMode = window.setTimeout(() => {
-      const nextShareMode =
-        new URLSearchParams(window.location.search).get("share") === "1";
-      setResolvedShareMode(nextShareMode);
-
-      if (!nextShareMode) {
-        fetch("/api/trip", { cache: "no-store" })
-          .then((response) => {
-            if (!response.ok)
-              throw new Error("Private reference data unavailable");
-            return response.json();
-          })
-          .then((value) => setTrip(value as TripData))
-          .catch(() => undefined);
-      }
-    }, 0);
-
-    return () => window.clearTimeout(resolveMode);
+    }
+    return () => manifest.remove();
   }, []);
 
   const nav: { id: Tab; label: string }[] = [
@@ -710,11 +922,9 @@ export default function Home() {
     setTab(id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-  const toggleShareMode = () => {
-    if (resolvedShareMode === null) return;
+  const openShareMode = () => {
     const url = new URL(window.location.href);
-    if (resolvedShareMode) url.searchParams.delete("share");
-    else url.searchParams.set("share", "1");
+    url.searchParams.set("share", "1");
     window.location.assign(url);
   };
 
@@ -740,7 +950,7 @@ export default function Home() {
             ))
         );
       }),
-    [person, packFilter, query, shared.state.checks],
+    [packing, person, packFilter, query, shared.state.checks],
   );
   const groupedPack = Object.groupBy(packRows, (item) => item.category);
   const completed = packing[person].filter(
@@ -748,7 +958,7 @@ export default function Home() {
   ).length;
 
   return (
-    <main className={shareMode ? "share-mode" : ""}>
+    <main>
       <header className="topbar">
         <button className="brand" onClick={() => go("today")}>
           <span>FT</span>
@@ -770,10 +980,9 @@ export default function Home() {
         </nav>
         <button
           className="privacy-toggle"
-          onClick={toggleShareMode}
-          disabled={resolvedShareMode === null}
+          onClick={openShareMode}
         >
-          {shareMode ? "Private view" : "Share-safe view"}
+          Open share-safe view
         </button>
       </header>
       <div className="shell">
@@ -788,8 +997,8 @@ export default function Home() {
           <div className="sync-status">
             <span className={shared.loading ? "dot loading" : "dot"}></span>
             {shared.loading
-              ? "Connecting to shared reference state…"
-              : `Shared state synced${shared.state.syncedAt ? ` • ${new Date(shared.state.syncedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : ""}`}
+              ? "Connecting to private trip state…"
+              : `Private state synced${shared.state.syncedAt ? ` • ${new Date(shared.state.syncedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : ""}`}
           </div>
         )}
 
@@ -844,7 +1053,7 @@ export default function Home() {
                   completed
                 </h2>
                 <p>
-                  Demonstration progress is shared across reference devices and
+                  Checklist progress is shared across this private app and
                   preserved by the local state service.
                 </p>
                 <button className="text-button" onClick={() => go("packing")}>
@@ -1410,7 +1619,7 @@ export default function Home() {
         {tab === "packing" && (
           <section className="page print-packing">
             <PageIntro
-              kicker="Fictional individual lists"
+              kicker={sampleData ? "Fictional individual lists" : "Private individual lists"}
               title="Team packing"
               text="Each reference item preserves its category, pack-in location, timing, and notes. Checked items remain visible and can be reopened."
             />
@@ -1498,9 +1707,11 @@ export default function Home() {
         {tab === "connectivity" && (
           <section className="page">
             <PageIntro
-              kicker={`${trip.connectivity.provider} • inert examples`}
+              kicker={`${trip.connectivity.provider} • ${sampleData ? "inert examples" : "private planning"}`}
               title="Connectivity & eSIMs"
-              text="Non-activatable profile records exercise the shared assignment control without exposing real connectivity data."
+              text={sampleData
+                ? "Non-activatable profile records exercise the shared assignment control without exposing real connectivity data."
+                : "Private connectivity planning. Never store activation tokens, ICCIDs, QR payloads, or carrier credentials here."}
             />
             <div className="notice">
               {"order" in trip.connectivity && (
@@ -1554,7 +1765,9 @@ export default function Home() {
             <PageIntro
               kicker="Generalized planning preferences"
               title="Safety & accessibility"
-              text="Harmless pacing, wayfinding, and accessibility reminders for the fictional field team. No private medical details are included."
+              text={sampleData
+                ? "Harmless pacing, wayfinding, and accessibility reminders for the fictional field team. No private medical details are included."
+                : "Private pacing, wayfinding, and accessibility preferences. Keep diagnoses and highly sensitive medical details outside this app."}
             />
             <div className="emergency">
               <strong>Public emergency guidance</strong>
@@ -1583,9 +1796,11 @@ export default function Home() {
         {tab === "vault" && (
           <section className="page vault-page">
             <PageIntro
-              kicker="Obvious demonstration • masked by default"
-              title="Demo bookings & inert access"
-              text="These fictional values exercise reveal and copy interactions. Every booking starts with DEMO-, and every access value is inert."
+              kicker={sampleData ? "Obvious demonstration • masked by default" : "Private browser-delivered references"}
+              title={sampleData ? "Demo bookings & inert access" : "Private booking references"}
+              text={sampleData
+                ? "These fictional values exercise reveal and copy interactions. Every booking starts with DEMO-, and every access value is inert."
+                : "Values here are delivered to the browser and are not encrypted by this app. Keep passwords, access codes, ticket payloads, and other secrets in the provider's protected system."}
             />
             <div className="privacy-banner">
               Demonstration values are hidden in print and share-safe modes. This
@@ -1615,7 +1830,9 @@ export default function Home() {
             <PageIntro
               kicker="Known unknowns"
               title="Pending live updates"
-              text="Each fictional missing detail names what is pending and when it should arrive. Saved values synchronize across reference devices."
+              text={sampleData
+                ? "Each fictional missing detail names what is pending and when it should arrive. Saved values synchronize across reference devices."
+                : "Each missing detail names what is pending and when it should arrive. Saved values synchronize across authorized private devices."}
             />
             <div className="pending-grid">
               {trip.pending_updates.map((update) => (
@@ -1669,10 +1886,15 @@ export default function Home() {
             {item.label}
           </button>
         ))}
+        <button onClick={openShareMode}>Share-safe</button>
       </nav>
       <footer>
         <span>{trip.identity.application_name}</span>
-        <span>{trip.identity.footer_note}</span>
+        <span>
+          {sampleData
+            ? trip.identity.footer_note
+            : "Private personal-trip data • protect this server with access control before remote use"}
+        </span>
       </footer>
     </main>
   );

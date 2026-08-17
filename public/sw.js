@@ -1,8 +1,8 @@
 const CACHE_PREFIX = "travel-command-center-reference-";
-const CACHE = `${CACHE_PREFIX}shell-v4`;
+const CACHE = `${CACHE_PREFIX}shell-v5`;
 const SHELL = [
   "/",
-  "/manifest.webmanifest?v=2",
+  "/manifest.webmanifest?v=3",
   "/favicon.svg",
   "/favicon-32.png",
   "/icon-192.png",
@@ -41,6 +41,7 @@ self.addEventListener("fetch", (event) => {
 
   const isNavigation = request.mode === "navigate";
   const isShareSafe = url.searchParams.get("share") === "1";
+  const navigationKey = isShareSafe ? "/?share=1" : "/";
   const isBuildAsset = url.pathname.startsWith("/assets/");
   const isShellAsset = SHELL.includes(`${url.pathname}${url.search}`) || SHELL.includes(url.pathname);
   if (!isNavigation && !isBuildAsset && !isShellAsset) return;
@@ -67,14 +68,12 @@ self.addEventListener("fetch", (event) => {
       .then((response) => {
         if (response.ok) {
           const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy));
+          caches.open(CACHE).then((cache) => cache.put(navigationKey, copy));
         }
         return response;
       })
       .catch(() =>
-        caches.match(request).then((cached) =>
-          cached || (isShareSafe ? Response.error() : caches.match("/")),
-        ),
+        caches.match(navigationKey).then((cached) => cached || Response.error()),
       ),
   );
 });
